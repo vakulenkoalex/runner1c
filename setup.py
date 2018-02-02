@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+
 import runner1c
 
 setup(
