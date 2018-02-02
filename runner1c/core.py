@@ -42,7 +42,7 @@ def _add_common_argument(parser):
     parser.add_argument('--debug', action='store_const', const=True, help='отладка')
 
 
-def main(as_module=False):
+def main(as_module=False, argument=None):
     commands = {}
 
     parser = argparse.ArgumentParser()
@@ -52,13 +52,15 @@ def main(as_module=False):
     subparsers.required = True
     _load_plugins(commands, subparsers)
 
-    parameters = parser.parse_args(sys.argv[1:])
+    if argument is None:
+        argument = sys.argv[1:]
+    parameters = parser.parse_args(argument)
     setattr(parameters, 'as_module', as_module)
 
     if parameters.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    handler = commands[getattr(parameters, 'command')]
+    handler = commands[parameters.command]
     sys.exit(handler.execute(parameters))
 
 
