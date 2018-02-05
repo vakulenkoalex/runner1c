@@ -1,8 +1,11 @@
 import os
 import shutil
 import tempfile
+from functools import partial
 
 EXIT_CODE = {'done': 0, 'error': 1, 'problem': -1}
+get_path_to_project = partial(os.path.join, os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+get_path_to_script = partial(os.path.join, os.path.abspath(os.path.dirname(__file__)))
 
 
 def run_scenario(steps):

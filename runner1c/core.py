@@ -7,17 +7,16 @@ import inspect
 import logging
 import os
 import sys
-from functools import partial
 
+import runner1c.common as common
 from runner1c.parser import Parser
 
 
 def _load_plugins(commands, subparsers):
-    get_path_to_here = partial(os.path.join, os.path.abspath(os.path.dirname(__file__)))
     commands_dir = "commands"
     modules = []
 
-    for file_name in os.listdir(get_path_to_here(commands_dir)):
+    for file_name in os.listdir(common.get_path_to_script(commands_dir)):
         if file_name.endswith(".py"):
             module_name = file_name[: -3]
             if module_name != "__init__":
