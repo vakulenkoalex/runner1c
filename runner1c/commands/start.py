@@ -17,29 +17,7 @@ class StartParser(runner1c.parser.Parser):
 
     # noinspection PyMethodMayBeStatic
     def execute(self, parameters):
-        if getattr(parameters, 'connection', False):
-            return Start(parameters).execute()
-        else:
-
-            steps = []
-
-            temp_folder = tempfile.mkdtemp()
-            connection = 'File={}'.format(temp_folder)
-
-            p_create = common.empty_parameters(parameters)
-            p_create.path = parameters.path
-            p_create.connection = connection
-            steps.append(create_base.CreateBase(p_create))
-
-            p_start = copy.copy(parameters)
-            p_start.connection = connection
-            steps.append(Start(p_start))
-
-            result_code = common.run_scenario(steps)
-
-            common.clear_folder(temp_folder)
-
-            return result_code
+        return Start(parameters).execute()
 
     def set_up(self):
         self.add_argument_to_parser(connection_required=False)
@@ -55,23 +33,46 @@ class Start(runner1c.command.Command):
         return common.EXIT_CODE['done']
 
     def execute(self):
-        string = common.get_path_to_1c()
-        string.append('ENTERPRISE')
-        common.add_common_for_all(string)
-        common.add_common_for_enterprise_designer(self._parameters, string)
+        if getattr(self._parameters, 'connection', False):
 
-        if getattr(self._parameters, 'thick', False):
-            string.append('/RunModeOrdinaryApplication')
+            string = common.get_path_to_1c()
+            string.append('ENTERPRISE')
+            common.add_common_for_all(string)
+            common.add_common_for_enterprise_designer(self._parameters, string)
 
-        if getattr(self._parameters, 'test_manager', False):
-            string.append('/TestManager')
+            if getattr(self._parameters, 'thick', False):
+                string.append('/RunModeOrdinaryApplication')
 
-        if getattr(self._parameters, 'epf', False):
-            string.append('/Execute "{epf}"')
+            if getattr(self._parameters, 'test_manager', False):
+                string.append('/TestManager')
 
-        if getattr(self._parameters, 'options', False):
-            string.append('/C "{options}"')
+            if getattr(self._parameters, 'epf', False):
+                string.append('/Execute "{epf}"')
 
-        setattr(self._parameters, 'cmd', ' '.join(string))
+            if getattr(self._parameters, 'options', False):
+                string.append('/C "{options}"')
 
-        return self.start()
+            setattr(self._parameters, 'cmd', ' '.join(string))
+
+            return self.start()
+
+        else:
+
+            steps = []
+
+            temp_folder = tempfile.mkdtemp()
+            connection = 'File={}'.format(temp_folder)
+
+            p_create = runner1c.command.EmptyParameters(self._parameters)
+            setattr(p_create, 'connection', connection)
+            steps.append(create_base.CreateBase(p_create))
+
+            p_start = copy.copy(self._parameters)
+            p_start.connection = connection
+            steps.append(Start(p_start))
+
+            result_code = common.run_scenario(steps)
+
+            common.clear_folder(temp_folder)
+
+            return result_code
