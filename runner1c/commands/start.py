@@ -1,9 +1,6 @@
-import copy
-import tempfile
-
 import runner1c
-import runner1c.commands.create_base as create_base
 import runner1c.common as common
+import runner1c.scenario
 
 
 class StartParser(runner1c.parser.Parser):
@@ -57,22 +54,4 @@ class Start(runner1c.command.Command):
             return self.start()
 
         else:
-
-            steps = []
-
-            temp_folder = tempfile.mkdtemp()
-            connection = 'File={}'.format(temp_folder)
-
-            p_create = runner1c.command.EmptyParameters(self._parameters)
-            setattr(p_create, 'connection', connection)
-            steps.append(create_base.CreateBase(p_create))
-
-            p_start = copy.copy(self._parameters)
-            p_start.connection = connection
-            steps.append(Start(p_start))
-
-            result_code = common.run_scenario(steps)
-
-            common.clear_folder(temp_folder)
-
-            return result_code
+            return runner1c.scenario.run_scenario([self], self._parameters, create_base=True)
