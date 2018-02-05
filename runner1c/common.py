@@ -1,3 +1,4 @@
+import copy
 import os
 import shutil
 import tempfile
@@ -114,6 +115,14 @@ def add_common_for_all(string):
     string.append('/L ru')
 
     return string
+
+
+def empty_parameters(parameters):
+    new_parameters = copy.copy(parameters)
+    for att in new_parameters.__dict__:
+        setattr(new_parameters, att, None)
+    # new_parameters.timeout = parameters.timeout
+    return new_parameters
 
 
 def _convert_encoding(old, new):

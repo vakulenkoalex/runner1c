@@ -18,7 +18,7 @@ class FileParser(runner1c.parser.Parser):
         return File(parameters).execute()
 
     def set_up(self):
-        self.parser.add_argument('--params', required=True, help='файл с параметрами')
+        self._parser.add_argument('--params', required=True, help='файл с параметрами')
 
 
 class File(runner1c.command.Command):

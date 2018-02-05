@@ -35,8 +35,7 @@ class Command(abc.ABC):
 
     def start(self):
         self._set_path_1c()
-        self._set_log()
-        self._set_result()
+        self._set_log_result()
 
         if getattr(self._parameters, 'connection', False):
             self._set_connection()
@@ -57,13 +56,6 @@ class Command(abc.ABC):
             self._delete_temp_files()
 
         return return_code
-
-    def empty_parameters(self):
-        new_parameters = copy.copy(self._parameters)
-        for att in new_parameters.__dict__:
-            setattr(new_parameters, att, None)
-        # new_parameters.timeout = parameters.timeout
-        return new_parameters
 
     def _get_result_from_file(self):
         result_code = self.default_result
@@ -86,14 +78,13 @@ class Command(abc.ABC):
         logging.debug('%s result_file = %s', self.name, result_for_compare)
         return result_code
 
-    def _set_log(self):
+    def _set_log_result(self):
         if getattr(self._parameters, 'log', False) and getattr(self._parameters, 'external_log', True):
             setattr(self._parameters, 'external_log', True)
         else:
             setattr(self._parameters, 'log', tempfile.mktemp('.txt'))
             setattr(self._parameters, 'external_log', False)
 
-    def _set_result(self):
         if getattr(self._parameters, 'result', False) and getattr(self._parameters, 'external_result', True):
             setattr(self._parameters, 'external_result', True)
         else:
