@@ -10,11 +10,6 @@ import runner1c.common as common
 
 class Command(abc.ABC):
     def __init__(self, parameters):
-        if parameters.command is None:
-            parameters.command = self.name
-        elif parameters.command.replace('_', '').upper() != self.name.upper():
-            raise Exception('Command in parameters different from class name')
-
         self._parameters = copy.copy(parameters)
 
     @property
@@ -116,3 +111,17 @@ class Command(abc.ABC):
 
         if not self._parameters.external_log:
             common.delete_file(self._parameters.log)
+
+
+class EmptyParameters:
+    def __init__(self, parameters):
+        self.debug = parameters.debug
+
+        self.copy_parameter(parameters, 'path')
+        self.copy_parameter(parameters, 'log')
+        self.copy_parameter(parameters, 'result')
+
+    def copy_parameter(self, parameters, name):
+        value = getattr(parameters, name, False)
+        if value:
+            setattr(self, 'name', value)
