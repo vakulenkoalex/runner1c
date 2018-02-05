@@ -33,7 +33,7 @@ class Command(abc.ABC):
         self._set_log_result()
 
         if getattr(self._parameters, 'connection', False):
-            self._set_connection()
+            self._set_connection_string()
 
         call_string = self._parameters.cmd.format(**vars(self._parameters))
 
@@ -51,6 +51,9 @@ class Command(abc.ABC):
             self._delete_temp_files()
 
         return return_code
+
+    def set_connection(self, connection):
+        setattr(self._parameters, 'connection', connection)
 
     def _get_result_from_file(self):
         result_code = self.default_result
@@ -86,7 +89,7 @@ class Command(abc.ABC):
             setattr(self._parameters, 'result', tempfile.mktemp('.txt'))
             setattr(self._parameters, 'external_result', False)
 
-    def _set_connection(self):
+    def _set_connection_string(self):
         if self.add_key_for_connection:
             if self._parameters.connection.endswith('v8i'):
                 type_connection = 'RunShortcut'
