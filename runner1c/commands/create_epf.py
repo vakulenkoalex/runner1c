@@ -1,5 +1,5 @@
 import runner1c
-import runner1c.common as common
+import runner1c.cmd_string
 import runner1c.scenario
 
 
@@ -28,10 +28,11 @@ class CreateEpf(runner1c.command.Command):
     def execute(self):
         if getattr(self._parameters, 'connection', False):
 
-            string = common.designer_string(self._parameters)
-            string.append('/LoadExternalDataProcessorOrReportFromFiles "{xml}" "{epf}"')
+            builder = runner1c.cmd_string.CmdString(self._parameters)
+            builder.set_designer()
+            builder.add_string('/LoadExternalDataProcessorOrReportFromFiles "{xml}" "{epf}"')
 
-            setattr(self._parameters, 'cmd', ' '.join(string))
+            setattr(self._parameters, 'cmd', builder.get_string())
 
             return self.start()
 

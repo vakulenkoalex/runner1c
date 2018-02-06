@@ -9,19 +9,6 @@ get_path_to_project = partial(os.path.join, os.path.dirname(os.path.abspath(os.p
 get_path_to_script = partial(os.path.join, os.path.abspath(os.path.dirname(__file__)))
 
 
-def designer_string(parameters):
-    string = get_path_to_1c()
-    string.append('DESIGNER')
-    add_common_for_all(string)
-    add_common_for_enterprise_designer(parameters, string)
-    add_result(string)
-
-    if not getattr(parameters, 'silent', False):
-        string.append('/Visible')
-
-    return string
-
-
 def clear_folder(folder_name):
     if os.path.exists(folder_name):
         shutil.rmtree(folder_name, True)
@@ -79,35 +66,6 @@ def delete_non_digit_element(line):
 def delete_file(file_name):
     if os.path.exists(file_name):
         os.remove(file_name)
-
-
-def get_path_to_1c():
-    return ['"{path_1c_exe}"']
-
-
-def add_result(string):
-    string.append('/DumpResult "{result}"')
-
-
-def add_common_for_enterprise_designer(parameters, string):
-    string.append('/DisableStartupDialogs')
-    string.append('/DisableStartupMessages')
-    if getattr(parameters, 'access', False):
-        string.append('/UC "{access}"')
-    if getattr(parameters, 'login', False):
-        string.append('/N "{login}"')
-    if getattr(parameters, 'password', False):
-        string.append('/P "{password}"')
-
-    return string
-
-
-def add_common_for_all(string):
-    string.append('{connection_string}')
-    string.append('/Out "{log}"')
-    string.append('/L ru')
-
-    return string
 
 
 def _convert_encoding(old, new):

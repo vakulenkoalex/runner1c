@@ -1,5 +1,5 @@
 import runner1c
-import runner1c.common as common
+import runner1c.cmd_string
 
 
 class CreateBaseParser(runner1c.parser.Parser):
@@ -25,10 +25,8 @@ class CreateBase(runner1c.command.Command):
         return False
 
     def execute(self):
-        string = common.get_path_to_1c()
-        string.append('CREATEINFOBASE')
-        common.add_common_for_all(string)
-        common.add_result(string)
+        builder = runner1c.cmd_string.CmdString(self._parameters)
+        builder.set_create_base()
 
-        setattr(self._parameters, 'cmd', ' '.join(string))
+        setattr(self._parameters, 'cmd', builder.get_string())
         return self.start()

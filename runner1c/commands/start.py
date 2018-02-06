@@ -1,4 +1,5 @@
 import runner1c
+import runner1c.cmd_string
 import runner1c.common as common
 import runner1c.scenario
 
@@ -32,24 +33,22 @@ class Start(runner1c.command.Command):
     def execute(self):
         if getattr(self._parameters, 'connection', False):
 
-            string = common.get_path_to_1c()
-            string.append('ENTERPRISE')
-            common.add_common_for_all(string)
-            common.add_common_for_enterprise_designer(self._parameters, string)
+            builder = runner1c.cmd_string.CmdString(self._parameters)
+            builder.set_enterprise()
 
             if getattr(self._parameters, 'thick', False):
-                string.append('/RunModeOrdinaryApplication')
+                builder.add_string('/RunModeOrdinaryApplication')
 
             if getattr(self._parameters, 'test_manager', False):
-                string.append('/TestManager')
+                builder.add_string('/TestManager')
 
             if getattr(self._parameters, 'epf', False):
-                string.append('/Execute "{epf}"')
+                builder.add_string('/Execute "{epf}"')
 
             if getattr(self._parameters, 'options', False):
-                string.append('/C "{options}"')
+                builder.add_string('/C "{options}"')
 
-            setattr(self._parameters, 'cmd', ' '.join(string))
+            setattr(self._parameters, 'cmd', builder.get_string())
 
             return self.start()
 

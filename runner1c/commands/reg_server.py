@@ -1,4 +1,5 @@
 import runner1c
+import runner1c.cmd_string
 import runner1c.common as common
 
 
@@ -25,8 +26,9 @@ class RegServer(runner1c.command.Command):
         return common.EXIT_CODE['done']
 
     def execute(self):
-        string = common.get_path_to_1c()
-        string.append('/RegServer -Auto')
+        builder = runner1c.cmd_string.CmdString(self._parameters)
+        builder.add_path_to_1c()
+        builder.add_string('/RegServer -Auto')
 
-        setattr(self._parameters, 'cmd', ' '.join(string))
+        setattr(self._parameters, 'cmd', builder.get_string())
         return self.start()
