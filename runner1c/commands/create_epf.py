@@ -10,7 +10,7 @@ class CreateEpfParser(runner1c.parser.Parser):
 
     @property
     def description(self):
-        return 'создание внешних обработок или отчетов из файлов'
+        return 'создание внешних обработок или отчетов из исходников'
 
     # noinspection PyMethodMayBeStatic
     def execute(self, parameters):
