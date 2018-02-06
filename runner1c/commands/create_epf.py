@@ -1,5 +1,4 @@
 import runner1c
-import runner1c.cmd_string
 
 
 class CreateEpfParser(runner1c.parser.Parser):

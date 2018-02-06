@@ -1,5 +1,4 @@
 import runner1c
-import runner1c.cmd_string
 import runner1c.common as common
 
 
