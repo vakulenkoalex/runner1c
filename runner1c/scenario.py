@@ -5,7 +5,7 @@ import runner1c.commands.create_base
 import runner1c.common as common
 
 
-def run_scenario(steps, parameters, create_base=False):
+def run_scenario(steps, parameters=None, create_base=False):
     if create_base:
         temp_folder = tempfile.mkdtemp()
         connection = 'File={}'.format(temp_folder)
