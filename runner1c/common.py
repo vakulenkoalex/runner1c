@@ -68,6 +68,11 @@ def delete_file(file_name):
         os.remove(file_name)
 
 
+def create_path(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+
 def _convert_encoding(old, new):
     new_file = open(new, mode='bw')
     old_file = open(old, mode='br')
