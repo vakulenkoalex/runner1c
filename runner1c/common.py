@@ -2,6 +2,7 @@ import os
 import shutil
 import tempfile
 from functools import partial
+import logging
 
 EXIT_CODE = {'done': 0, 'error': 1, 'problem': -1}
 
@@ -73,7 +74,75 @@ def create_path(path):
         os.makedirs(path)
 
 
+def get_module_ordinary_form(dir_for_scan):
+    for bin_form in _find_bin_forms(dir_for_scan):
+        _parse_module_from_bin(bin_form)
+
+
 def _convert_encoding(old, new):
     new_file = open(new, mode='bw')
     old_file = open(old, mode='br')
     new_file.write(old_file.read().decode('cp1251').encode('utf-8'))
+
+
+def _find_bin_forms(dir_for_scan):
+    forms_path = []
+
+    for path_element in os.walk(dir_for_scan):
+
+        files = path_element[2]
+
+        if files and files[0] == 'Form.bin':
+            forms_path.append(os.path.join(path_element[0], files[0]))
+
+    return forms_path
+
+
+def _parse_module_from_bin(file_name):
+    logging.debug('parse %s', file_name)
+
+    file_path = os.path.split(file_name)[0]
+    module_path = file_path + '\\Form'
+    if not os.path.exists(module_path):
+        os.mkdir(module_path)
+
+    find_string = 0
+    open_file = False
+    module_file_name = module_path + '\\Module.bsl'
+
+    origin_file = open(file_name, mode='rb')
+
+    for line in origin_file:
+
+        if find_string == 1:
+
+            if line.find(b'7fffffff') != -1:
+                find_string = 2
+
+        elif find_string == 2:
+
+            if line.find(b'7fffffff') != -1:
+                break
+
+            line_read = line.decode('utf8')
+
+            line_for_write = ''
+            for element in line_read:
+                if ord(element) not in [0, 13, 65279]:
+                    line_for_write += element
+
+            if line_for_write != '':
+                if not open_file:
+                    module_file = open(module_file_name, mode='w', encoding='utf-8-sig')
+                    open_file = True
+
+                # noinspection PyUnboundLocalVariable
+                module_file.write(line_for_write)
+
+        elif line.find(b'00000024 00000024 7fffffff') != -1:
+            find_string = 1
+
+    origin_file.close()
+
+    if open_file:
+        module_file.close()

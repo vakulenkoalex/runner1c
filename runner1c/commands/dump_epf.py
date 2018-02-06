@@ -49,16 +49,16 @@ class DumpEpf(runner1c.command.Command):
             setattr(self._parameters, 'temp_epf', temp_epf)
             setattr(self._parameters, 'cmd', builder.get_string())
 
-            logging.debug('epf = %s', self._parameters.epf)
-            logging.debug('folder = %s', self._parameters.folder)
-            logging.debug('temp_epf = %s', self._parameters.temp_epf)
-            logging.debug('temp_folder = %s', self._parameters.temp_folder)
+            logging.debug('%s epf = %s', self.name, self._parameters.epf)
+            logging.debug('%s folder = %s', self.name, self._parameters.folder)
+            logging.debug('%s temp_epf = %s', self.name, self._parameters.temp_epf)
+            logging.debug('%s temp_folder = %s', self.name, self._parameters.temp_folder)
 
             return_code = self.start()
 
             common.clear_folder('{}\\{}'.format(self._parameters.folder, _get_epf_name(temp_folder)))
             copy_tree.copy_tree(temp_folder, self._parameters.folder)
-
+            common.get_module_ordinary_form(self._parameters.folder)
             common.clear_folder(temp_folder)
             common.delete_file(temp_epf)
 
