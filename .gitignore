@@ -9,7 +9,6 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
-build/
 develop-eggs/
 dist/
 downloads/
@@ -100,4 +99,7 @@ ENV/
 # mypy
 .mypy_cache/
 .idea/
-bin/
+
+# 1c
+/build/*
+!/build/README.md
