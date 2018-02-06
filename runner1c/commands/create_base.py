@@ -1,5 +1,4 @@
 import runner1c
-import runner1c.cmd_string
 
 
 class CreateBaseParser(runner1c.parser.Parser):
@@ -16,7 +15,7 @@ class CreateBaseParser(runner1c.parser.Parser):
         return CreateBase(parameters).execute()
 
     def set_up(self):
-        self.add_argument_to_parser()
+        self.add_argument_to_parser(authorization=False)
 
 
 class CreateBase(runner1c.command.Command):

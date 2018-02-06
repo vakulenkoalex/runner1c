@@ -23,9 +23,16 @@ class Parser(abc.ABC):
     def execute(self, parameters):
         pass
 
-    def add_argument_to_parser(self, connection_required=True):
+    def add_argument_to_parser(self, connection_required=True, authorization=True):
         self._parser.add_argument('--path', help='путь куда установлена платформа 1С')
         self._parser.add_argument('--connection', required=connection_required,
                                   help='строка соединения с информационной базой')
         self._parser.add_argument('--log', help='путь к файлу лога')
         self._parser.add_argument('--result', help='путь к файлу результата')
+        self._parser.add_argument('--silent', action='store_const', const=True, help='делает исполнение пакетной '
+                                                                                     'команды невидимым пользователю')
+
+        if authorization:
+            self._parser.add_argument('--access', help='код доступа к заблокированной базе')
+            self._parser.add_argument('--login', help='имя пользователя')
+            self._parser.add_argument('--password', help='пароль пользователя')
