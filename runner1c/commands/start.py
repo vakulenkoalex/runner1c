@@ -1,7 +1,6 @@
 import runner1c
 import runner1c.cmd_string
 import runner1c.common as common
-import runner1c.scenario
 
 
 class StartParser(runner1c.parser.Parser):
