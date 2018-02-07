@@ -31,8 +31,8 @@ class Start(runner1c.command.Command):
     def execute(self):
         if getattr(self._parameters, 'connection', False):
 
-            builder = runner1c.cmd_string.CmdString(self._parameters)
-            builder.set_enterprise()
+            builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.ENTERPRISE,
+                                                    parameters=self._parameters)
 
             if getattr(self._parameters, 'thick', False):
                 builder.add_string('/RunModeOrdinaryApplication')

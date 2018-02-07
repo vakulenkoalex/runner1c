@@ -1,32 +1,22 @@
 import copy
+from enum import Enum
 
 
 class CmdString:
-    def __init__(self, parameters):
-        self._parameters = copy.copy(parameters)
+    def __init__(self, parameters=None, mode=None):
         self._cmd = []
 
-    def set_designer(self):
-        self.add_path_to_1c()
-        self.add_string('DESIGNER')
-        self._add_for_all_mode()
-        self._add_for_enterprise_designer()
-        self._add_result()
+        if parameters is not None:
+            self._parameters = copy.copy(parameters)
 
-        if not getattr(self._parameters, 'silent', False):
-            self.add_string('/Visible')
-
-    def set_enterprise(self):
-        self.add_path_to_1c()
-        self.add_string('ENTERPRISE')
-        self._add_for_all_mode()
-        self._add_for_enterprise_designer()
-
-    def set_create_base(self):
-        self.add_path_to_1c()
-        self.add_string('CREATEINFOBASE')
-        self._add_for_all_mode()
-        self._add_result()
+        if mode == Mode.DESIGNER:
+            self._set_designer()
+        elif mode == Mode.ENTERPRISE:
+            self._set_enterprise()
+        elif mode == Mode.CREATE:
+            self._set_create_base()
+        else:
+            self.add_path_to_1c()
 
     def add_path_to_1c(self):
         self.add_string('"{path_1c_exe}"')
@@ -50,7 +40,30 @@ class CmdString:
         if getattr(self._parameters, 'password', False):
             self.add_string('/P "{password}"')
 
-    def _add_for_all_mode(self):
+    def _set_mode(self, mode):
+        self.add_path_to_1c()
+        self.add_string(mode.value)
         self.add_string('{connection_string}')
         self.add_string('/Out "{log}"')
         self.add_string('/L ru')
+
+    def _set_enterprise(self):
+        self._set_mode(Mode.ENTERPRISE)
+        self._add_for_enterprise_designer()
+
+    def _set_create_base(self):
+        self._set_mode(Mode.CREATE)
+        self._add_result()
+
+    def _set_designer(self):
+        self._set_mode(Mode.DESIGNER)
+        self._add_for_enterprise_designer()
+        self._add_result()
+        if not getattr(self._parameters, 'silent', False):
+            self.add_string('/Visible')
+
+
+class Mode(Enum):
+    DESIGNER = 'DESIGNER'
+    ENTERPRISE = 'ENTERPRISE'
+    CREATE = 'CREATEINFOBASE'

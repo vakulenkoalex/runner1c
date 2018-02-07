@@ -39,8 +39,7 @@ class DumpEpf(runner1c.command.Command):
             temp_epf = tempfile.mktemp('.epf')
             shutil.copy(self._parameters.epf, temp_epf)
 
-            builder = runner1c.cmd_string.CmdString(self._parameters)
-            builder.set_designer()
+            builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self._parameters)
             builder.add_string('/DumpExternalDataProcessorOrReportToFiles "{temp_folder}" "{temp_epf}" '
                                '-Format Hierarchical')
 
@@ -56,8 +55,8 @@ class DumpEpf(runner1c.command.Command):
             return_code = self.start()
 
             common.clear_folder('{}\\{}'.format(self._parameters.folder, _get_epf_name(temp_folder)))
+            common.get_module_ordinary_form(temp_folder)
             copy_tree.copy_tree(temp_folder, self._parameters.folder)
-            common.get_module_ordinary_form(self._parameters.folder)
             common.clear_folder(temp_folder)
             common.delete_file(temp_epf)
 

@@ -24,8 +24,7 @@ class CreateBase(runner1c.command.Command):
         return False
 
     def execute(self):
-        builder = runner1c.cmd_string.CmdString(self._parameters)
-        builder.set_create_base()
+        builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.CREATE)
 
         setattr(self._parameters, 'cmd', builder.get_string())
         return self.start()
