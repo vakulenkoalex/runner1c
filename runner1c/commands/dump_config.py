@@ -1,6 +1,6 @@
-import tempfile
 import logging
 import re
+import tempfile
 
 import runner1c
 import runner1c.common as common

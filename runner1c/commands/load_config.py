@@ -20,6 +20,7 @@ class LoadConfigParser(runner1c.parser.Parser):
         self._parser.add_argument('--update', action='store_const', const=True, help='обновление конфигурации '
                                                                                      'базы данных')
 
+
 class LoadConfig(runner1c.command.Command):
     def execute(self):
         builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self._parameters)
