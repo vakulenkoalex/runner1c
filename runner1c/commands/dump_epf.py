@@ -55,7 +55,7 @@ class DumpEpf(runner1c.command.Command):
             return_code = self.start()
 
             common.clear_folder('{}\\{}'.format(self._parameters.folder, _get_epf_name(temp_folder)))
-            common.get_module_ordinary_form(temp_folder)
+            common.get_module_ordinary_form([temp_folder])
             copy_tree.copy_tree(temp_folder, self._parameters.folder)
             common.clear_folder(temp_folder)
             common.delete_file(temp_epf)
