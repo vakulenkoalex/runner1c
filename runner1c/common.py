@@ -3,6 +3,7 @@ import shutil
 import tempfile
 from functools import partial
 import logging
+import time
 
 EXIT_CODE = {'done': 0, 'error': 1, 'problem': -1}
 
@@ -75,8 +76,29 @@ def create_path(path):
 
 
 def get_module_ordinary_form(dir_for_scan):
-    for bin_form in _find_bin_forms(dir_for_scan):
-        _parse_module_from_bin(bin_form)
+    start = time.time()
+    for folder in dir_for_scan:
+        for bin_form in _find_bin_forms(folder):
+            _parse_module_from_bin(bin_form)
+    stop = time.time()
+    logging.debug('get_module_ordinary_form time = %s', stop - start)
+
+
+def folder_for_class_1c(name):
+    if name == 'BusinessProcess':
+        result = 'BusinessProcesses'
+    elif name == 'ChartOfCharacteristicTypes':
+        result = 'ChartsOfCharacteristicTypes'
+    elif name == 'FilterCriterion':
+        result = 'FilterCriteria'
+    elif name == 'ChartOfAccounts':
+        result = 'ChartsOfAccounts'
+    elif name == 'ChartOfCalculationTypes':
+        result = 'ChartsOfCalculationTypes'
+    else:
+        result = name + 's'
+
+    return result
 
 
 def _convert_encoding(old, new):
