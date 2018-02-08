@@ -123,6 +123,7 @@ class EmptyParameters:
         self.copy_parameter(parameters, 'path')
         self.copy_parameter(parameters, 'log')
         self.copy_parameter(parameters, 'result')
+        self.copy_parameter(parameters, 'silent')
 
     def copy_parameter(self, parameters, name):
         value = getattr(parameters, name, False)
