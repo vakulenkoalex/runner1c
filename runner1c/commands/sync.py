@@ -25,8 +25,7 @@ class SyncParser(runner1c.parser.Parser):
     def set_up(self):
         self.add_argument_to_parser(connection_required=False)
         self._parser.add_argument('--create', action='store_const', const=True, help='создать бинарники из исходников')
-        self._parser.add_argument('--folder', required=True,
-                                  help='путь к папке с репозитарием')
+        self._parser.add_argument('--folder', required=True, help='путь к папке с репозитарием')
 
 
 class Sync(runner1c.command.Command):

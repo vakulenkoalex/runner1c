@@ -13,7 +13,7 @@ class DumpConfigParser(runner1c.parser.Parser):
 
     @property
     def description(self):
-        return 'выгрузка конфигурации в XML-файлы'
+        return 'выгрузка конфигурации на исходники'
 
     # noinspection PyMethodMayBeStatic
     def execute(self, parameters):

@@ -16,7 +16,7 @@ class LoadConfigParser(runner1c.parser.Parser):
 
     def set_up(self):
         self.add_argument_to_parser()
-        self._parser.add_argument('--folder', required=True, help='каталог, содержащий XML-файлы конфигурации')
+        self._parser.add_argument('--folder', required=True, help='каталог, содержащий исходники конфигурации')
         self._parser.add_argument('--update', action='store_const', const=True, help='обновление конфигурации '
                                                                                      'базы данных')
 

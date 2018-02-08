@@ -27,7 +27,7 @@ class DumpEpfParser(runner1c.parser.Parser):
         self._parser.add_argument('--epf', required=True,
                                   help='путь к файлу внешней обработки или отчета, в который будет записан результат')
         self._parser.add_argument('--folder', required=True,
-                                  help='путь к выгрузки, в который будут сохранены файлы в формате XML внешней '
+                                  help='путь к выгрузки, в который будут сохранены исходники внешней '
                                        'обработки или отчета')
 
 
