@@ -1,5 +1,5 @@
 import runner1c
-import runner1c.commands.start as start
+import runner1c.commands.start
 import runner1c.common as common
 
 
@@ -19,7 +19,7 @@ class DiffMxlParser(runner1c.parser.Parser):
         setattr(p_start, 'epf', common.get_path_to_project('build\\tools\\epf\\FileCompareMxl.epf'))
         setattr(p_start, 'options', 'First={};Second={}'.format(parameters.first, parameters.second))
 
-        return start.Start(p_start).execute()
+        return runner1c.commands.start.Start(p_start).execute()
 
     def set_up(self):
         self._parser.add_argument('--first', required=True, help='путь к первому файлу')
