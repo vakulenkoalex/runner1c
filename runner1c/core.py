@@ -59,9 +59,8 @@ def main(as_module=False, argument=None):
     if parameters.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    handler = commands[parameters.command]
-    sys.exit(handler.execute(parameters))
+    return commands[parameters.command].execute(parameters)
 
 
 if __name__ == '__main__':
-    main(as_module=True)
+    sys.exit(main(as_module=True))
