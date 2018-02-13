@@ -24,6 +24,10 @@ class Command(abc.ABC):
     def add_key_for_connection(self):
         return True
 
+    @property
+    def wait_result(self):
+        return True
+
     @abc.abstractmethod
     def execute(self):
         pass
@@ -38,17 +42,26 @@ class Command(abc.ABC):
         call_string = self._parameters.cmd.format(**vars(self._parameters))
 
         logging.debug('%s run = %s', self.name, call_string)
-        result_call = subprocess.call(call_string)
-        logging.debug('%s result_call = %s', self.name, result_call)
 
-        if self._parameters.log.endswith('html'):
-            common.save_as_html(self._parameters.log)
+        if self.wait_result:
+            result_call = subprocess.call(call_string)
+            logging.debug('%s result_call = %s', self.name, result_call)
 
-        return_code = self._get_result_from_file()
-        logging.debug('%s exit_code = %s', self.name, return_code)
+            if self._parameters.log.endswith('html'):
+                common.save_as_html(self._parameters.log)
 
-        if not self._parameters.debug:
-            self._delete_temp_files()
+            return_code = self._get_result_from_file()
+            logging.debug('%s exit_code = %s', self.name, return_code)
+
+            if not self._parameters.debug:
+                self._delete_temp_files()
+        else:
+            return_code = self.default_result
+            # noinspection PyPep8,PyBroadException
+            try:
+                subprocess.Popen('start "no wait" ' + call_string, shell=True)
+            except:
+                return_code = common.EXIT_CODE['problem']
 
         return return_code
 
