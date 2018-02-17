@@ -18,8 +18,8 @@ class DumpEpfParser(runner1c.parser.Parser):
         return 'создать исходники внешних обработок или отчетов'
 
     # noinspection PyMethodMayBeStatic
-    def execute(self, **kwargs):
-        return DumpEpf(**kwargs).execute()
+    def create_handler(self, **kwargs):
+        return DumpEpf(**kwargs)
 
     def set_up(self):
         self.add_argument_to_parser(connection_required=False)

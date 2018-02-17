@@ -11,8 +11,8 @@ class LoadConfigParser(runner1c.parser.Parser):
         return 'загрузка конфигурации из файлов'
 
     # noinspection PyMethodMayBeStatic
-    def execute(self, **kwargs):
-        return LoadConfig(**kwargs).execute()
+    def create_handler(self, **kwargs):
+        return LoadConfig(**kwargs)
 
     def set_up(self):
         self.add_argument_to_parser()

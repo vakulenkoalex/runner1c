@@ -12,8 +12,8 @@ class StartParser(runner1c.parser.Parser):
         return 'запуск системы в режиме "Предприятие"'
 
     # noinspection PyMethodMayBeStatic
-    def execute(self, **kwargs):
-        return Start(**kwargs).execute()
+    def create_handler(self, **kwargs):
+        return Start(**kwargs)
 
     def set_up(self):
         self.add_argument_to_parser(connection_required=False)

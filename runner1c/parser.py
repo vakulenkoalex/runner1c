@@ -20,7 +20,7 @@ class Parser(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def execute(self, **kwargs):
+    def create_handler(self, **kwargs):
         pass
 
     def add_argument_to_parser(self, connection_required=True, authorization=True):

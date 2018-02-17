@@ -11,8 +11,8 @@ class CreateBaseParser(runner1c.parser.Parser):
         return 'создание информационной базы'
 
     # noinspection PyMethodMayBeStatic
-    def execute(self, **kwargs):
-        return runner1c.command.CreateBase(**kwargs).execute()
+    def create_handler(self, **kwargs):
+        return runner1c.command.CreateBase(**kwargs)
 
     def set_up(self):
         self.add_argument_to_parser(authorization=False)

@@ -19,8 +19,8 @@ class SyncParser(runner1c.parser.Parser):
         return 'синхранизация исходников и бинарных файлов (отчеты, обработки, фичи)'
 
     # noinspection PyMethodMayBeStatic
-    def execute(self, **kwargs):
-        return Sync(**kwargs).execute()
+    def create_handler(self, **kwargs):
+        return Sync(**kwargs)
 
     def set_up(self):
         self.add_argument_to_parser(connection_required=False)

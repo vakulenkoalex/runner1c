@@ -61,7 +61,8 @@ def main(as_module=False, string=None):
     if arguments.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    return commands[arguments.command].execute(arguments=arguments)
+    handler = commands[arguments.command].create_handler(arguments=arguments)
+    return handler.execute()
 
 
 if __name__ == '__main__':

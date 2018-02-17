@@ -14,8 +14,8 @@ class FileParser(runner1c.parser.Parser):
         return 'прочитать параметры командной строки из файла'
 
     # noinspection PyMethodMayBeStatic
-    def execute(self, **kwargs):
-        return File(**kwargs).execute()
+    def create_handler(self, **kwargs):
+        return File(**kwargs)
 
     def set_up(self):
         self._parser.add_argument('--params', required=True, help='файл с параметрами')

@@ -15,8 +15,8 @@ class DumpConfigParser(runner1c.parser.Parser):
         return 'выгрузка конфигурации на исходники'
 
     # noinspection PyMethodMayBeStatic
-    def execute(self, **kwargs):
-        return DumpConfig(**kwargs).execute()
+    def create_handler(self, **kwargs):
+        return DumpConfig(**kwargs)
 
     def set_up(self):
         self.add_argument_to_parser()
