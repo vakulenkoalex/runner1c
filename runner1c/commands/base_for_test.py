@@ -31,7 +31,7 @@ class CreateBaseForTest(runner1c.command.Command):
     def execute(self):
         folder_for_config_src = 'cf'
 
-        # после создания базы можно паралельно создавать обработки и обновлять базу в режиме Предприятия
+        #todo после создания базы можно паралельно создавать обработки и обновлять базу в режиме Предприятия
 
         p_create = runner1c.command.EmptyParameters(self.arguments)
         setattr(p_create, 'connection', self.arguments.connection)

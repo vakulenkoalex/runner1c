@@ -48,6 +48,7 @@ class Command(abc.ABC):
     def builder_cmd(self):
         return None
 
+    # todo сделать вывод времени выполнения операции
     def execute(self):
         if self.builder_cmd is None:
             raise Exception('Need override builder_cmd')
