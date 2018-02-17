@@ -1,4 +1,3 @@
-import logging
 import re
 import tempfile
 
@@ -16,8 +15,8 @@ class DumpConfigParser(runner1c.parser.Parser):
         return 'выгрузка конфигурации на исходники'
 
     # noinspection PyMethodMayBeStatic
-    def execute(self, parameters):
-        return DumpConfig(parameters).execute()
+    def execute(self, **kwargs):
+        return DumpConfig(**kwargs).execute()
 
     def set_up(self):
         self.add_argument_to_parser()
@@ -27,25 +26,25 @@ class DumpConfigParser(runner1c.parser.Parser):
 
 class DumpConfig(runner1c.command.Command):
     def execute(self):
-        builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self._parameters)
+        builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self.arguments)
         builder.add_string('/DumpConfigToFiles "{folder}" -Format Hierarchical')
 
-        if getattr(self._parameters, 'update', False):
+        if getattr(self.arguments, 'update', False):
 
             changes = tempfile.mktemp('.txt')
             builder.add_string('-update -force -getChanges {changes}')
 
-            setattr(self._parameters, 'changes', changes)
-            logging.debug('%s changes = %s', self.name, changes)
+            setattr(self.arguments, 'changes', changes)
+            self.debug('changes = %s', changes)
 
         else:
-            common.clear_folder(self._parameters.folder)
+            common.clear_folder(self.arguments.folder)
 
-        setattr(self._parameters, 'cmd', builder.get_string())
+        setattr(self.arguments, 'cmd', builder.get_string())
         return_code = self.start()
 
-        folders_for_scan = [self._parameters.folder]
-        if getattr(self._parameters, 'update', False):
+        folders_for_scan = [self.arguments.folder]
+        if getattr(self.arguments, 'update', False):
             # noinspection PyUnboundLocalVariable
             with open(changes, mode='r', encoding='utf-8') as file:
                 text = file.read()
@@ -62,7 +61,7 @@ class DumpConfig(runner1c.command.Command):
             common.delete_file(changes)
 
         if len(folders_for_scan) > 0:
-            common.get_module_ordinary_form(folders_for_scan)
+            self.get_module_ordinary_form(folders_for_scan)
 
         return return_code
 
@@ -73,7 +72,7 @@ class DumpConfig(runner1c.command.Command):
             class_name = parts[0]
             object_name = parts[1]
             form_name = parts[3]
-            folders_for_scan.append('{}\\{}\\{}\\Forms\\{}'.format(self._parameters.folder,
+            folders_for_scan.append('{}\\{}\\{}\\Forms\\{}'.format(self.arguments.folder,
                                                                    common.folder_for_class_1c(class_name),
                                                                    object_name,
                                                                    form_name))

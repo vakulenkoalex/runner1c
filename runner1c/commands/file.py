@@ -14,8 +14,8 @@ class FileParser(runner1c.parser.Parser):
         return 'прочитать параметры командной строки из файла'
 
     # noinspection PyMethodMayBeStatic
-    def execute(self, parameters):
-        return File(parameters).execute()
+    def execute(self, **kwargs):
+        return File(**kwargs).execute()
 
     def set_up(self):
         self._parser.add_argument('--params', required=True, help='файл с параметрами')
@@ -23,7 +23,7 @@ class FileParser(runner1c.parser.Parser):
 
 class File(runner1c.command.Command):
     def execute(self):
-        params_file = open(self._parameters.params, mode='r+b')
+        params_file = open(self.arguments.params, mode='r+b')
         byte_string = params_file.read(-1)
         params_file.close()
 
@@ -32,4 +32,4 @@ class File(runner1c.command.Command):
         except UnicodeDecodeError:
             string = byte_string.decode('cp1251')
 
-        return runner1c.core.main(argument=json.loads(string))
+        return runner1c.core.main(string=json.loads(string))

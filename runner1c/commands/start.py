@@ -1,5 +1,5 @@
 import runner1c
-import runner1c.common as common
+import runner1c.exit_code
 
 
 class StartParser(runner1c.parser.Parser):
@@ -12,8 +12,8 @@ class StartParser(runner1c.parser.Parser):
         return 'запуск системы в режиме "Предприятие"'
 
     # noinspection PyMethodMayBeStatic
-    def execute(self, parameters):
-        return Start(parameters).execute()
+    def execute(self, **kwargs):
+        return Start(**kwargs).execute()
 
     def set_up(self):
         self.add_argument_to_parser(connection_required=False)
@@ -26,29 +26,29 @@ class StartParser(runner1c.parser.Parser):
 class Start(runner1c.command.Command):
     @property
     def default_result(self):
-        return common.EXIT_CODE['done']
+        return runner1c.exit_code.EXIT_CODE['done']
 
     def execute(self):
-        if getattr(self._parameters, 'connection', False):
+        if getattr(self.arguments, 'connection', False):
 
             builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.ENTERPRISE,
-                                                    parameters=self._parameters)
+                                                    parameters=self.arguments)
 
-            if getattr(self._parameters, 'thick', False):
+            if getattr(self.arguments, 'thick', False):
                 builder.add_string('/RunModeOrdinaryApplication')
 
-            if getattr(self._parameters, 'test_manager', False):
+            if getattr(self.arguments, 'test_manager', False):
                 builder.add_string('/TestManager')
 
-            if getattr(self._parameters, 'epf', False):
+            if getattr(self.arguments, 'epf', False):
                 builder.add_string('/Execute "{epf}"')
 
-            if getattr(self._parameters, 'options', False):
+            if getattr(self.arguments, 'options', False):
                 builder.add_string('/C "{options}"')
 
-            setattr(self._parameters, 'cmd', builder.get_string())
+            setattr(self.arguments, 'cmd', builder.get_string())
 
             return self.start()
 
         else:
-            return runner1c.scenario.run_scenario([self], self._parameters, create_base=True)
+            return self.start_no_base()

@@ -1,16 +1,32 @@
 import abc
 import copy
+import json
 import logging
 import os
 import subprocess
 import tempfile
+import time
+
+import paramiko
 
 import runner1c.common as common
+import runner1c.exit_code
 
 
 class Command(abc.ABC):
-    def __init__(self, parameters):
-        self._parameters = copy.copy(parameters)
+    def __init__(self, **kwargs):
+        self.arguments = copy.copy(kwargs['arguments'])
+        self._logger = logging.getLogger(self.name)
+
+        agent_channel = kwargs.get('agent_channel', None)
+        # noinspection PyPep8
+        if not agent_channel is None:
+            self._client, self._channel = agent_channel
+            self._agent_started = True
+            self._need_close_agent = False
+        else:
+            self._agent_started = False
+            self._need_close_agent = True
 
     @property
     def name(self):
@@ -18,7 +34,7 @@ class Command(abc.ABC):
 
     @property
     def default_result(self):
-        return common.EXIT_CODE['problem']
+        return runner1c.exit_code.EXIT_CODE['error']
 
     @property
     def add_key_for_connection(self):
@@ -36,24 +52,24 @@ class Command(abc.ABC):
         self._set_path_1c()
         self._set_log_result()
 
-        if getattr(self._parameters, 'connection', False):
+        if getattr(self.arguments, 'connection', False):
             self._set_connection_string()
 
-        call_string = self._parameters.cmd.format(**vars(self._parameters))
+        call_string = self.arguments.cmd.format(**vars(self.arguments))
 
-        logging.debug('%s run = %s', self.name, call_string)
+        self.debug('run = %s', call_string)
 
         if self.wait_result:
             result_call = subprocess.call(call_string)
-            logging.debug('%s result_call = %s', self.name, result_call)
+            self.debug('result_call = %s', result_call)
 
-            if self._parameters.log.endswith('html'):
-                common.save_as_html(self._parameters.log)
+            if self.arguments.log.endswith('html'):
+                common.save_as_html(self.arguments.log)
 
             return_code = self._get_result_from_file()
-            logging.debug('%s exit_code = %s', self.name, return_code)
+            self.debug('exit_code = %s', return_code)
 
-            if not self._parameters.debug:
+            if not self.arguments.debug:
                 self._delete_temp_files()
         else:
             return_code = self.default_result
@@ -61,84 +77,313 @@ class Command(abc.ABC):
             try:
                 subprocess.Popen('start "no wait" ' + call_string, shell=True)
             except:
-                return_code = common.EXIT_CODE['problem']
+                return_code = runner1c.exit_code.EXIT_CODE['error']
 
         return return_code
 
-    def set_connection(self, connection):
-        setattr(self._parameters, 'connection', connection)
+    def start_no_base(self):
+        temp_folder = tempfile.mkdtemp()
+        connection = 'File={}'.format(temp_folder)
+
+        p_create_base = runner1c.command.EmptyParameters(self.arguments)
+        setattr(p_create_base, 'connection', connection)
+        return_code = CreateBase(arguments=p_create_base).execute()
+
+        if runner1c.exit_code.success_result(return_code):
+            setattr(self.arguments, 'connection', connection)
+            return_code = self.execute()
+
+        common.clear_folder(temp_folder)
+
+        return return_code
+
+    def get_module_ordinary_form(self, dir_for_scan):
+        start = time.time()
+        for folder in dir_for_scan:
+            for bin_form in self._find_bin_forms(folder):
+                self._parse_module_from_bin(bin_form)
+        stop = time.time()
+        self.debug('get_module_ordinary_form time = %s', stop - start)
+
+    def debug(self, msg, *args):
+        self._logger.debug(msg, *args)
+
+    def start_agent(self):
+        if self._agent_started:
+            return
+
+        # запуск конфигуратора в режиме агента
+        p_agent = runner1c.command.EmptyParameters(self.arguments)
+        setattr(p_agent, 'connection', self.arguments.connection)
+        setattr(p_agent, 'folder', self.arguments.folder)
+        StartAgent(arguments=p_agent).execute()
+        time.sleep(1)
+
+        # noinspection PyAttributeOutsideInit
+        self._agent_started = True
+
+        # подключение к агенту
+
+        # noinspection PyAttributeOutsideInit
+        self._client = paramiko.SSHClient()
+        self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        self._client.connect(hostname='127.0.0.1', username='', password='', port=1543)
+
+        # noinspection PyAttributeOutsideInit
+        self._channel = self._client.get_transport().open_session()
+        self._channel.invoke_shell()
+
+        # пропуск приветствия
+        self._channel.recv(99999)
+
+        # установка формата ответа
+        self.send_to_agent('options set --output-format=json --show-prompt=no', False)
+
+        return_code = self.send_to_agent('common connect-ib')
+        if not runner1c.exit_code.success_result(return_code):
+            raise Exception('Failed connect to agent')
+
+    def send_to_agent(self, command, wait_response=True):
+        # noinspection PyPep8
+        if not self._agent_started:
+            raise Exception('Agent not started')
+
+        result_code = runner1c.exit_code.EXIT_CODE['error']
+        self.debug('run = %s', command)
+
+        self._channel.send(command + '\n')
+
+        result_sting = self._get_response_from_agent()
+
+        if wait_response:
+
+            response_receive = False
+
+            while not response_receive:
+
+                self.debug('response = %s', result_sting)
+
+                for line in result_sting.split(']'):
+                    if len(line.strip()) == 0:
+                        continue
+
+                    try:
+                        for element in json.loads(line + ']'):
+                            response_type = element.get('type', 'none')
+                            if response_type == 'success':
+                                result_code = runner1c.exit_code.EXIT_CODE['done']
+                                response_receive = True
+                            elif response_type == 'error':
+                                result_code = runner1c.exit_code.EXIT_CODE['error']
+                                response_receive = True
+                    except json.decoder.JSONDecodeError:
+                        pass
+
+                if response_receive:
+                    break
+
+                result_sting = self._get_response_from_agent()
+
+        else:
+            result_code = runner1c.exit_code.EXIT_CODE['done']
+
+        self.debug('result_call = %s', result_code)
+
+        return result_code
+
+    def close_agent(self):
+        if not self._need_close_agent:
+            return
+        # noinspection PyPep8
+        if not self._agent_started:
+            return
+
+        self.send_to_agent('common disconnect-ib', False)
+        self.send_to_agent('common shutdown', False)
+
+        self._channel.close()
+        self._client.close()
+
+        # noinspection PyAttributeOutsideInit
+        self._agent_started = False
+
+    def get_agent_channel(self):
+        return self._client, self._channel
+
+    def _get_response_from_agent(self):
+        while not self._channel.recv_ready():
+            pass
+        time.sleep(1)
+        result = self._channel.recv(99999)
+
+        return result.decode()
+
+    def _set_connection(self, connection):
+        setattr(self.arguments, 'connection', connection)
+
+    @staticmethod
+    def _find_bin_forms(dir_for_scan):
+        forms_path = []
+
+        for path_element in os.walk(dir_for_scan):
+
+            files = path_element[2]
+
+            if files and files[0] == 'Form.bin':
+                forms_path.append(os.path.join(path_element[0], files[0]))
+
+        return forms_path
+
+    def _parse_module_from_bin(self, file_name):
+        self.debug('parse %s', file_name)
+
+        file_path = os.path.split(file_name)[0]
+        module_path = file_path + '\\Form'
+        if not os.path.exists(module_path):
+            os.mkdir(module_path)
+
+        find_string = 0
+        open_file = False
+        module_file_name = module_path + '\\Module.bsl'
+
+        origin_file = open(file_name, mode='rb')
+
+        for line in origin_file:
+
+            if find_string == 1:
+
+                if line.find(b'7fffffff') != -1:
+                    find_string = 2
+
+            elif find_string == 2:
+
+                if line.find(b'7fffffff') != -1:
+                    break
+
+                line_read = line.decode('utf8')
+
+                line_for_write = ''
+                for element in line_read:
+                    if ord(element) not in [0, 13, 65279]:
+                        line_for_write += element
+
+                if line_for_write != '':
+                    if not open_file:
+                        module_file = open(module_file_name, mode='w', encoding='utf-8-sig')
+                        open_file = True
+
+                    # noinspection PyUnboundLocalVariable
+                    module_file.write(line_for_write)
+
+            elif line.find(b'00000024 00000024 7fffffff') != -1:
+                find_string = 1
+
+        origin_file.close()
+
+        if open_file:
+            module_file.close()
 
     def _get_result_from_file(self):
         result_code = self.default_result
         result_for_compare = None
 
-        if os.path.exists(self._parameters.result):
+        if os.path.exists(self.arguments.result):
 
-            result_stream = open(self._parameters.result, mode='r', encoding='utf-8')
+            result_stream = open(self.arguments.result, mode='r', encoding='utf-8')
             line = result_stream.readline()
             result_stream.close()
 
             result_for_compare = common.delete_non_digit_element(line)
             if result_for_compare == '0':
-                result_code = common.EXIT_CODE['done']
+                result_code = runner1c.exit_code.EXIT_CODE['done']
             elif result_for_compare == '101':
-                result_code = common.EXIT_CODE['done']
+                result_code = runner1c.exit_code.EXIT_CODE['done']
             elif result_for_compare == '1':
-                result_code = common.EXIT_CODE['error']
+                result_code = runner1c.exit_code.EXIT_CODE['error']
 
-        logging.debug('%s result_file = %s', self.name, result_for_compare)
+        self.debug('result_file = %s', result_for_compare)
         return result_code
 
     def _set_log_result(self):
-        if getattr(self._parameters, 'log', False) and getattr(self._parameters, 'external_log', True):
-            setattr(self._parameters, 'external_log', True)
+        if getattr(self.arguments, 'log', False) and getattr(self.arguments, 'external_log', True):
+            setattr(self.arguments, 'external_log', True)
         else:
-            setattr(self._parameters, 'log', tempfile.mktemp('.txt'))
-            setattr(self._parameters, 'external_log', False)
+            setattr(self.arguments, 'log', tempfile.mktemp('.txt'))
+            setattr(self.arguments, 'external_log', False)
 
-        if getattr(self._parameters, 'result', False) and getattr(self._parameters, 'external_result', True):
-            setattr(self._parameters, 'external_result', True)
+        if getattr(self.arguments, 'result', False) and getattr(self.arguments, 'external_result', True):
+            setattr(self.arguments, 'external_result', True)
         else:
-            setattr(self._parameters, 'result', tempfile.mktemp('.txt'))
-            setattr(self._parameters, 'external_result', False)
+            setattr(self.arguments, 'result', tempfile.mktemp('.txt'))
+            setattr(self.arguments, 'external_result', False)
 
     def _set_connection_string(self):
         if self.add_key_for_connection:
-            if self._parameters.connection.endswith('v8i'):
+            if self.arguments.connection.endswith('v8i'):
                 type_connection = 'RunShortcut'
             else:
                 type_connection = 'IBConnectionString'
-            setattr(self._parameters, 'connection_string',
-                    '/{} "{}"'.format(type_connection, self._parameters.connection))
+            setattr(self.arguments, 'connection_string',
+                    '/{} "{}"'.format(type_connection, self.arguments.connection))
         else:
-            setattr(self._parameters, 'connection_string', '"{}"'.format(self._parameters.connection))
+            setattr(self.arguments, 'connection_string', '"{}"'.format(self.arguments.connection))
 
     def _set_path_1c(self):
-        if getattr(self._parameters, 'path', False):
-            path = '{}\\bin\\{}'.format(self._parameters.path, '1cv8.exe')
+        if getattr(self.arguments, 'path', False):
+            path = os.path.join(self.arguments.path, 'bin')
         else:
             path = common.get_path_to_max_version_1c()
 
-        setattr(self._parameters, 'path_1c_exe', path)
+        setattr(self.arguments, 'path_1c_exe', os.path.join(path, '1cv8.exe'))
 
     def _delete_temp_files(self):
-        if not self._parameters.external_result:
-            common.delete_file(self._parameters.result)
+        if not self.arguments.external_result:
+            common.delete_file(self.arguments.result)
 
-        if not self._parameters.external_log:
-            common.delete_file(self._parameters.log)
+        if not self.arguments.external_log:
+            common.delete_file(self.arguments.log)
 
 
 class EmptyParameters:
-    def __init__(self, parameters):
-        self.debug = parameters.debug
+    def __init__(self, arguments):
+        self.debug = arguments.debug
 
-        self.copy_parameter(parameters, 'path')
-        self.copy_parameter(parameters, 'log')
-        self.copy_parameter(parameters, 'result')
-        self.copy_parameter(parameters, 'silent')
+        self.copy_parameter(arguments, 'path')
+        self.copy_parameter(arguments, 'log')
+        self.copy_parameter(arguments, 'result')
+        self.copy_parameter(arguments, 'silent')
 
-    def copy_parameter(self, parameters, name):
-        value = getattr(parameters, name, False)
+    def copy_parameter(self, arguments, name):
+        value = getattr(arguments, name, False)
         if value:
             setattr(self, 'name', value)
+
+
+class CreateBase(Command):
+    @property
+    def add_key_for_connection(self):
+        return False
+
+    def execute(self):
+        builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.CREATE)
+
+        setattr(self.arguments, 'cmd', builder.get_string())
+        return self.start()
+
+
+class StartAgent(Command):
+    @property
+    def default_result(self):
+        return runner1c.exit_code.EXIT_CODE['done']
+
+    @property
+    def wait_result(self):
+        return False
+
+    def execute(self):
+        builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self.arguments)
+        builder.add_string('/AgentMode /AgentSSHHostKeyAuto /AgentBaseDir "{folder}"')
+
+        setattr(self.arguments, 'cmd', builder.get_string())
+
+        return self.start()

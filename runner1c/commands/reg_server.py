@@ -1,5 +1,5 @@
 import runner1c
-import runner1c.common as common
+import runner1c.exit_code
 
 
 class CreateBaseParser(runner1c.parser.Parser):
@@ -12,8 +12,8 @@ class CreateBaseParser(runner1c.parser.Parser):
         return 'регистрация "Предприятия" в качестве OLE-Automation-сервера'
 
     # noinspection PyMethodMayBeStatic
-    def execute(self, parameters):
-        return RegServer(parameters).execute()
+    def execute(self, **kwargs):
+        return RegServer(**kwargs).execute()
 
     def set_up(self):
         pass
@@ -22,11 +22,11 @@ class CreateBaseParser(runner1c.parser.Parser):
 class RegServer(runner1c.command.Command):
     @property
     def default_result(self):
-        return common.EXIT_CODE['done']
+        return runner1c.exit_code.EXIT_CODE['done']
 
     def execute(self):
         builder = runner1c.cmd_string.CmdString()
         builder.add_string('/RegServer -Auto')
 
-        setattr(self._parameters, 'cmd', builder.get_string())
+        setattr(self.arguments, 'cmd', builder.get_string())
         return self.start()

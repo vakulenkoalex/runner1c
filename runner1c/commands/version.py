@@ -11,7 +11,7 @@ class Version(runner1c.parser.Parser):
         return 'версия программы'
 
     # noinspection PyUnusedLocal,PyMethodMayBeStatic
-    def execute(self, parameters):
+    def execute(self, **kwargs):
         print(runner1c.__version__)
         return 0
 

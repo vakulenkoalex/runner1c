@@ -11,8 +11,8 @@ class CreateEpfParser(runner1c.parser.Parser):
         return 'создание внешних обработок или отчетов из исходников'
 
     # noinspection PyMethodMayBeStatic
-    def execute(self, parameters):
-        return CreateEpf(parameters).execute()
+    def execute(self, **kwargs):
+        return CreateEpf(**kwargs).execute()
 
     def set_up(self):
         self.add_argument_to_parser(connection_required=False)
@@ -24,14 +24,14 @@ class CreateEpfParser(runner1c.parser.Parser):
 
 class CreateEpf(runner1c.command.Command):
     def execute(self):
-        if getattr(self._parameters, 'connection', False):
+        if getattr(self.arguments, 'connection', False):
 
-            builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self._parameters)
+            builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self.arguments)
             builder.add_string('/LoadExternalDataProcessorOrReportFromFiles "{xml}" "{epf}"')
 
-            setattr(self._parameters, 'cmd', builder.get_string())
+            setattr(self.arguments, 'cmd', builder.get_string())
 
             return self.start()
 
         else:
-            return runner1c.scenario.run_scenario([self], self._parameters, create_base=True)
+            return self.start_no_base()

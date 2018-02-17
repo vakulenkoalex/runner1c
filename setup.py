@@ -17,5 +17,8 @@ setup(
         'console_scripts': [
             'runner1c = runner1c.core:main',
         ],
-    }
+    },
+    install_requires=[
+        'paramiko>=2.4'
+    ]
 )

@@ -13,13 +13,14 @@ class DiffMxlParser(runner1c.parser.Parser):
         return 'показать расхождение в mxl файлах'
 
     # noinspection PyMethodMayBeStatic
-    def execute(self, parameters):
-        p_start = runner1c.command.EmptyParameters(parameters)
+    def execute(self, **kwargs):
+        arguments = kwargs['arguments']
+        p_start = runner1c.command.EmptyParameters(arguments)
         setattr(p_start, 'thick', True)
         setattr(p_start, 'epf', common.get_path_to_project('build\\tools\\epf\\FileCompareMxl.epf'))
-        setattr(p_start, 'options', 'First={};Second={}'.format(parameters.first, parameters.second))
+        setattr(p_start, 'options', 'First={};Second={}'.format(arguments.first, arguments.second))
 
-        return runner1c.commands.start.Start(p_start).execute()
+        return runner1c.commands.start.Start(arguments=p_start).execute()
 
     def set_up(self):
         self._parser.add_argument('--first', required=True, help='путь к первому файлу')

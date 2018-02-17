@@ -41,7 +41,8 @@ def _add_common_argument(parser):
     parser.add_argument('--debug', action='store_const', const=True, help='отладка')
 
 
-def main(as_module=False, argument=None):
+# noinspection PyUnusedLocal
+def main(as_module=False, string=None):
     commands = {}
 
     parser = argparse.ArgumentParser()
@@ -51,15 +52,16 @@ def main(as_module=False, argument=None):
     subparsers.required = True
     _load_plugins(commands, subparsers)
 
-    if argument is None:
-        argument = sys.argv[1:]
-    parameters = parser.parse_args(argument)
-    setattr(parameters, 'as_module', as_module)
+    if string is None:
+        list_argument = sys.argv[1:]
+    else:
+        list_argument = string.split(' ')
+    arguments = parser.parse_args(list_argument)
 
-    if parameters.debug:
+    if arguments.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    return commands[parameters.command].execute(parameters)
+    return commands[arguments.command].execute(arguments=arguments)
 
 
 if __name__ == '__main__':

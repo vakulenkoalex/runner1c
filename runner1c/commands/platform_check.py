@@ -15,8 +15,8 @@ class PlatformCheckParser(runner1c.parser.Parser):
         return 'проверка конфигурации'
 
     # noinspection PyMethodMayBeStatic
-    def execute(self, parameters):
-        return PlatformCheckConfig(parameters).execute()
+    def execute(self, **kwargs):
+        return PlatformCheckConfig(**kwargs).execute()
 
     def set_up(self):
         self.add_argument_to_parser()
@@ -30,22 +30,22 @@ class PlatformCheckParser(runner1c.parser.Parser):
 
 class PlatformCheckConfig(runner1c.command.Command):
     def execute(self):
-        builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self._parameters)
+        builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self.arguments)
         builder.add_string('/CheckConfig {options}')
 
-        setattr(self._parameters, 'cmd', builder.get_string())
+        setattr(self.arguments, 'cmd', builder.get_string())
         return_code = self.start()
 
-        _delete_plug_function(self._parameters.log)
+        _delete_plug_function(self.arguments.log)
 
-        if getattr(self._parameters, 'skip_modality'):
-            _delete_modality_error(self._parameters.skip_modality, self._parameters.log)
+        if getattr(self.arguments, 'skip_modality'):
+            _delete_modality_error(self.arguments.skip_modality, self.arguments.log)
 
-        if getattr(self._parameters, 'skip_object'):
-            _delete_skip_object(self._parameters.skip_object, self._parameters.log)
+        if getattr(self.arguments, 'skip_object'):
+            _delete_skip_object(self.arguments.skip_object, self.arguments.log)
 
-        if getattr(self._parameters, 'skip_error'):
-            _delete_skip_error(self._parameters.skip_error, self._parameters.log)
+        if getattr(self.arguments, 'skip_error'):
+            _delete_skip_error(self.arguments.skip_error, self.arguments.log)
 
         return return_code
 
