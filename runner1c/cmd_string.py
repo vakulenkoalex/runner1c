@@ -5,6 +5,7 @@ from enum import Enum
 class CmdString:
     def __init__(self, parameters=None, mode=None):
         self._cmd = []
+        self.mode = mode
 
         if parameters is not None:
             self._parameters = copy.copy(parameters)

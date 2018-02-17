@@ -22,12 +22,12 @@ class LoadConfigParser(runner1c.parser.Parser):
 
 
 class LoadConfig(runner1c.command.Command):
-    def execute(self):
+    @property
+    def builder_cmd(self):
         builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self.arguments)
         builder.add_string('/LoadConfigFromFiles "{folder}"')
 
         if getattr(self.arguments, 'update', False):
             builder.add_string('/UpdateDBCfg')
 
-        setattr(self.arguments, 'cmd', builder.get_string())
-        return self.start()
+        return builder

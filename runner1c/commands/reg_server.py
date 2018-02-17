@@ -21,12 +21,12 @@ class CreateBaseParser(runner1c.parser.Parser):
 
 class RegServer(runner1c.command.Command):
     @property
-    def default_result(self):
-        return runner1c.exit_code.EXIT_CODE['done']
-
-    def execute(self):
+    def builder_cmd(self):
         builder = runner1c.cmd_string.CmdString()
         builder.add_string('/RegServer -Auto')
 
-        setattr(self.arguments, 'cmd', builder.get_string())
-        return self.start()
+        return builder
+
+    @property
+    def default_result(self):
+        return runner1c.exit_code.EXIT_CODE['done']

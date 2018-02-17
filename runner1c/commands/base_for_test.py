@@ -38,6 +38,7 @@ class CreateBaseForTest(runner1c.command.Command):
         return_code = runner1c.command.CreateBase(arguments=p_create).execute()
 
         if exit_code.success_result(return_code):
+
             self.start_agent()
 
             command = 'config load-files --dir "{}\\{}" --update-config-dump-info'

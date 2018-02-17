@@ -23,15 +23,9 @@ class CreateEpfParser(runner1c.parser.Parser):
 
 
 class CreateEpf(runner1c.command.Command):
-    def execute(self):
-        if getattr(self.arguments, 'connection', False):
+    @property
+    def builder_cmd(self):
+        builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self.arguments)
+        builder.add_string('/LoadExternalDataProcessorOrReportFromFiles "{xml}" "{epf}"')
 
-            builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self.arguments)
-            builder.add_string('/LoadExternalDataProcessorOrReportFromFiles "{xml}" "{epf}"')
-
-            setattr(self.arguments, 'cmd', builder.get_string())
-
-            return self.start()
-
-        else:
-            return self.start_no_base()
+        return builder

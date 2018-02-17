@@ -25,30 +25,24 @@ class StartParser(runner1c.parser.Parser):
 
 class Start(runner1c.command.Command):
     @property
+    def builder_cmd(self):
+        builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.ENTERPRISE,
+                                                parameters=self.arguments)
+
+        if getattr(self.arguments, 'thick', False):
+            builder.add_string('/RunModeOrdinaryApplication')
+
+        if getattr(self.arguments, 'test_manager', False):
+            builder.add_string('/TestManager')
+
+        if getattr(self.arguments, 'epf', False):
+            builder.add_string('/Execute "{epf}"')
+
+        if getattr(self.arguments, 'options', False):
+            builder.add_string('/C "{options}"')
+
+        return builder
+
+    @property
     def default_result(self):
         return runner1c.exit_code.EXIT_CODE['done']
-
-    def execute(self):
-        if getattr(self.arguments, 'connection', False):
-
-            builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.ENTERPRISE,
-                                                    parameters=self.arguments)
-
-            if getattr(self.arguments, 'thick', False):
-                builder.add_string('/RunModeOrdinaryApplication')
-
-            if getattr(self.arguments, 'test_manager', False):
-                builder.add_string('/TestManager')
-
-            if getattr(self.arguments, 'epf', False):
-                builder.add_string('/Execute "{epf}"')
-
-            if getattr(self.arguments, 'options', False):
-                builder.add_string('/C "{options}"')
-
-            setattr(self.arguments, 'cmd', builder.get_string())
-
-            return self.start()
-
-        else:
-            return self.start_no_base()

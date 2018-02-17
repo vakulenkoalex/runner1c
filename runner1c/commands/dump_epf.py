@@ -31,6 +31,14 @@ class DumpEpfParser(runner1c.parser.Parser):
 
 
 class DumpEpf(runner1c.command.Command):
+    @property
+    def builder_cmd(self):
+        builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self.arguments)
+        builder.add_string('/DumpExternalDataProcessorOrReportToFiles "{temp_folder}" "{temp_epf}" '
+                           '-Format Hierarchical')
+
+        return builder
+
     def execute(self):
         if getattr(self.arguments, 'connection', False):
 
@@ -38,13 +46,8 @@ class DumpEpf(runner1c.command.Command):
             temp_epf = tempfile.mktemp('.epf')
             shutil.copy(self.arguments.epf, temp_epf)
 
-            builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self.arguments)
-            builder.add_string('/DumpExternalDataProcessorOrReportToFiles "{temp_folder}" "{temp_epf}" '
-                               '-Format Hierarchical')
-
             setattr(self.arguments, 'temp_folder', temp_folder)
             setattr(self.arguments, 'temp_epf', temp_epf)
-            setattr(self.arguments, 'cmd', builder.get_string())
 
             self.debug('epf = %s', self.arguments.epf)
             self.debug('folder = %s', self.arguments.folder)
@@ -53,7 +56,7 @@ class DumpEpf(runner1c.command.Command):
 
             return_code = self.start()
 
-            common.clear_folder('{}\\{}'.format(self.arguments.folder, _get_epf_name(temp_folder)))
+            common.clear_folder(os.path.join(self.arguments.folder, _get_epf_name(temp_folder)))
             self.get_module_ordinary_form([temp_folder])
             copy_tree.copy_tree(temp_folder, self.arguments.folder)
             common.clear_folder(temp_folder)

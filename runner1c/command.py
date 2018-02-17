@@ -44,9 +44,18 @@ class Command(abc.ABC):
     def wait_result(self):
         return True
 
-    @abc.abstractmethod
+    @property
+    def builder_cmd(self):
+        return None
+
     def execute(self):
-        pass
+        if self.builder_cmd is None:
+            raise Exception('Need override builder_cmd')
+        else:
+            if getattr(self.arguments, 'connection', False):
+                return self.start()
+            else:
+                return self.start_no_base()
 
     def start(self):
         self._set_path_1c()
@@ -55,7 +64,7 @@ class Command(abc.ABC):
         if getattr(self.arguments, 'connection', False):
             self._set_connection_string()
 
-        call_string = self.arguments.cmd.format(**vars(self.arguments))
+        call_string = self.builder_cmd.get_string().format(**vars(self.arguments))
 
         self.debug('run = %s', call_string)
 
@@ -334,7 +343,12 @@ class Command(abc.ABC):
         else:
             path = common.get_path_to_max_version_1c()
 
-        setattr(self.arguments, 'path_1c_exe', os.path.join(path, '1cv8.exe'))
+        file_name_1c = '1cv8.exe'
+        if self.builder_cmd.mode == runner1c.cmd_string.Mode.ENTERPRISE \
+                and not getattr(self.arguments, 'thick', False):
+            file_name_1c = '1cv8c.exe'
+
+        setattr(self.arguments, 'path_1c_exe', os.path.join(path, file_name_1c))
 
     def _delete_temp_files(self):
         if not self.arguments.external_result:
@@ -361,17 +375,22 @@ class EmptyParameters:
 
 class CreateBase(Command):
     @property
+    def builder_cmd(self):
+        return runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.CREATE)
+
+    @property
     def add_key_for_connection(self):
         return False
 
-    def execute(self):
-        builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.CREATE)
-
-        setattr(self.arguments, 'cmd', builder.get_string())
-        return self.start()
-
 
 class StartAgent(Command):
+    @property
+    def builder_cmd(self):
+        builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self.arguments)
+        builder.add_string('/AgentMode /AgentSSHHostKeyAuto /AgentBaseDir "{folder}"')
+
+        return builder
+
     @property
     def default_result(self):
         return runner1c.exit_code.EXIT_CODE['done']
@@ -379,11 +398,3 @@ class StartAgent(Command):
     @property
     def wait_result(self):
         return False
-
-    def execute(self):
-        builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self.arguments)
-        builder.add_string('/AgentMode /AgentSSHHostKeyAuto /AgentBaseDir "{folder}"')
-
-        setattr(self.arguments, 'cmd', builder.get_string())
-
-        return self.start()
