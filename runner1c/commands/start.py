@@ -21,9 +21,14 @@ class StartParser(runner1c.parser.Parser):
         self._parser.add_argument('--test_manager', action='store_const', const=True, help='менеджер тестирования')
         self._parser.add_argument('--epf', help='путь к обработке запускаемой при старте')
         self._parser.add_argument('--options', help='параметры запуска для передачи в клиент')
+        self._parser.add_argument('--no_wait', action='store_const', const=True, help='без ожедания результата')
 
 
 class Start(runner1c.command.Command):
+    @property
+    def wait_result(self):
+        return not getattr(self.arguments, 'no_wait', False)
+
     @property
     def builder_cmd(self):
         builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.ENTERPRISE,
