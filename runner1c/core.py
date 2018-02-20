@@ -42,7 +42,7 @@ def _add_common_argument(parser):
 
 
 # noinspection PyUnusedLocal
-def main(as_module=False, string=None):
+def main(string=None, as_module=False):
     commands = {}
 
     parser = argparse.ArgumentParser()
