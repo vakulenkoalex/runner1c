@@ -39,33 +39,29 @@ class DumpEpf(runner1c.command.Command):
 
         return builder
 
+    @runner1c.command.create_base_if_necessary
     def execute(self):
-        if getattr(self.arguments, 'connection', False):
+        temp_folder = tempfile.mkdtemp()
+        temp_epf = tempfile.mktemp('.epf')
+        shutil.copy(self.arguments.epf, temp_epf)
 
-            temp_folder = tempfile.mkdtemp()
-            temp_epf = tempfile.mktemp('.epf')
-            shutil.copy(self.arguments.epf, temp_epf)
+        setattr(self.arguments, 'temp_folder', temp_folder)
+        setattr(self.arguments, 'temp_epf', temp_epf)
 
-            setattr(self.arguments, 'temp_folder', temp_folder)
-            setattr(self.arguments, 'temp_epf', temp_epf)
+        self.debug('epf = %s', self.arguments.epf)
+        self.debug('folder = %s', self.arguments.folder)
+        self.debug('temp_epf = %s', self.arguments.temp_epf)
+        self.debug('temp_folder = %s', self.arguments.temp_folder)
 
-            self.debug('epf = %s', self.arguments.epf)
-            self.debug('folder = %s', self.arguments.folder)
-            self.debug('temp_epf = %s', self.arguments.temp_epf)
-            self.debug('temp_folder = %s', self.arguments.temp_folder)
+        return_code = self.start()
 
-            return_code = self.start()
+        common.clear_folder(os.path.join(self.arguments.folder, _get_epf_name(temp_folder)))
+        self.get_module_ordinary_form([temp_folder])
+        copy_tree.copy_tree(temp_folder, self.arguments.folder)
+        common.clear_folder(temp_folder)
+        common.delete_file(temp_epf)
 
-            common.clear_folder(os.path.join(self.arguments.folder, _get_epf_name(temp_folder)))
-            self.get_module_ordinary_form([temp_folder])
-            copy_tree.copy_tree(temp_folder, self.arguments.folder)
-            common.clear_folder(temp_folder)
-            common.delete_file(temp_epf)
-
-            return return_code
-
-        else:
-            return self.start_no_base()
+        return return_code
 
 
 def _get_epf_name(folder):

@@ -33,61 +33,58 @@ class Sync(runner1c.command.Command):
     def default_result(self):
         return runner1c.exit_code.EXIT_CODE.done
 
+    @runner1c.command.create_base_if_necessary
     def execute(self):
-        if getattr(self.arguments, 'connection', False):
-            # noinspection PyAttributeOutsideInit
-            self.files_hash = {}
-            result_code = self.default_result
-            error_in_loop = False
+        # noinspection PyAttributeOutsideInit
+        self.files_hash = {}
+        result_code = self.default_result
+        error_in_loop = False
 
-            if getattr(self.arguments, 'create', True):
+        if getattr(self.arguments, 'create', True):
 
-                self.start_agent()
+            self.start_agent()
 
-                source_map = self._get_source()
-                for path_source, path_binary in source_map.items():
-                    if path_binary.endswith('.epf'):
-                        command = 'config load-ext-files --file="{}" --ext-file="{}"'.format(
-                            path_source, path_binary)
-                        return_code = self.send_to_agent(command)
-                        if not runner1c.exit_code.success_result(return_code):
-                            error_in_loop = True
-                            break
-                    else:
-                        common.create_path(os.path.dirname(path_binary))
-                        shutil.copy(path_source, path_binary)
+            source_map = self._get_source()
+            for path_source, path_binary in source_map.items():
+                if path_binary.endswith('.epf'):
+                    command = 'config load-ext-files --file="{}" --ext-file="{}"'.format(
+                        path_source, path_binary)
+                    return_code = self.send_to_agent(command)
+                    if not runner1c.exit_code.success_result(return_code):
+                        error_in_loop = True
+                        break
+                else:
+                    common.create_path(os.path.dirname(path_binary))
+                    shutil.copy(path_source, path_binary)
 
-                self.close_agent()
-
-            else:
-
-                for path_binary, path_source in self._get_change_binary().items():
-                    if path_binary.endswith('.epf'):
-                        p_dump_epf = runner1c.command.EmptyParameters(self.arguments)
-                        setattr(p_dump_epf, 'connection', self.arguments.connection)
-                        setattr(p_dump_epf, 'folder', os.path.dirname(path_source))
-                        setattr(p_dump_epf, 'epf', path_binary)
-                        return_code = runner1c.commands.dump_epf.DumpEpf(arguments=p_dump_epf).execute()
-                        if not runner1c.exit_code.success_result(return_code):
-                            error_in_loop = True
-                            break
-                    else:
-                        common.create_path(os.path.dirname(path_source))
-                        shutil.copy(path_binary, path_source)
-
-            if error_in_loop:
-                result_code = runner1c.exit_code.EXIT_CODE.error
-
-            if result_code == self.default_result:
-                if getattr(self.arguments, 'create', True):
-                    # noinspection PyUnboundLocalVariable
-                    self._fill_files_hash(source_map.values())
-                self._save_file_hash()
-
-            return result_code
+            self.close_agent()
 
         else:
-            return self.start_no_base()
+
+            for path_binary, path_source in self._get_change_binary().items():
+                if path_binary.endswith('.epf'):
+                    p_dump_epf = runner1c.command.EmptyParameters(self.arguments)
+                    setattr(p_dump_epf, 'connection', self.arguments.connection)
+                    setattr(p_dump_epf, 'folder', os.path.dirname(path_source))
+                    setattr(p_dump_epf, 'epf', path_binary)
+                    return_code = runner1c.commands.dump_epf.DumpEpf(arguments=p_dump_epf).execute()
+                    if not runner1c.exit_code.success_result(return_code):
+                        error_in_loop = True
+                        break
+                else:
+                    common.create_path(os.path.dirname(path_source))
+                    shutil.copy(path_binary, path_source)
+
+        if error_in_loop:
+            result_code = runner1c.exit_code.EXIT_CODE.error
+
+        if result_code == self.default_result:
+            if getattr(self.arguments, 'create', True):
+                # noinspection PyUnboundLocalVariable
+                self._fill_files_hash(source_map.values())
+            self._save_file_hash()
+
+        return result_code
 
     @property
     def _binary_folder(self):

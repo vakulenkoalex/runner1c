@@ -13,6 +13,15 @@ import runner1c.common as common
 import runner1c.exit_code
 
 
+def create_base_if_necessary(func):
+    def wrapper(self):
+        if getattr(self.arguments, 'connection', False):
+            return func(self)
+        else:
+            return self.start_no_base()
+    return wrapper
+
+
 class Command(abc.ABC):
     def __init__(self, **kwargs):
         self.arguments = copy.copy(kwargs['arguments'])
@@ -49,14 +58,12 @@ class Command(abc.ABC):
         return None
 
     # todo сделать вывод времени выполнения операции
+    @create_base_if_necessary
     def execute(self):
         if self.builder_cmd is None:
             raise Exception('Need override builder_cmd')
         else:
-            if getattr(self.arguments, 'connection', False):
-                return self.start()
-            else:
-                return self.start_no_base()
+            return self.start()
 
     def start(self):
         self._set_path_1c()
