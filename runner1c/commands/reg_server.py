@@ -29,4 +29,4 @@ class RegServer(runner1c.command.Command):
 
     @property
     def default_result(self):
-        return runner1c.exit_code.EXIT_CODE['done']
+        return runner1c.exit_code.EXIT_CODE.done

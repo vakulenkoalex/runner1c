@@ -31,7 +31,7 @@ class SyncParser(runner1c.parser.Parser):
 class Sync(runner1c.command.Command):
     @property
     def default_result(self):
-        return runner1c.exit_code.EXIT_CODE['done']
+        return runner1c.exit_code.EXIT_CODE.done
 
     def execute(self):
         if getattr(self.arguments, 'connection', False):
@@ -76,7 +76,7 @@ class Sync(runner1c.command.Command):
                         shutil.copy(path_binary, path_source)
 
             if error_in_loop:
-                result_code = runner1c.exit_code.EXIT_CODE['error']
+                result_code = runner1c.exit_code.EXIT_CODE.error
 
             if result_code == self.default_result:
                 if getattr(self.arguments, 'create', True):

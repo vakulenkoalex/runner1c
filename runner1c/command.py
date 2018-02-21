@@ -34,7 +34,7 @@ class Command(abc.ABC):
 
     @property
     def default_result(self):
-        return runner1c.exit_code.EXIT_CODE['error']
+        return runner1c.exit_code.EXIT_CODE.error
 
     @property
     def add_key_for_connection(self):
@@ -87,7 +87,7 @@ class Command(abc.ABC):
             try:
                 subprocess.Popen('start "no wait" ' + call_string, shell=True)
             except:
-                return_code = runner1c.exit_code.EXIT_CODE['error']
+                return_code = runner1c.exit_code.EXIT_CODE.error
 
         return return_code
 
@@ -158,7 +158,7 @@ class Command(abc.ABC):
         if not self._agent_started:
             raise Exception('Agent not started')
 
-        result_code = runner1c.exit_code.EXIT_CODE['error']
+        result_code = runner1c.exit_code.EXIT_CODE.error
         self.debug('run = %s', command)
 
         self._channel.send(command + '\n')
@@ -181,10 +181,10 @@ class Command(abc.ABC):
                         for element in json.loads(line + ']'):
                             response_type = element.get('type', 'none')
                             if response_type == 'success':
-                                result_code = runner1c.exit_code.EXIT_CODE['done']
+                                result_code = runner1c.exit_code.EXIT_CODE.done
                                 response_receive = True
                             elif response_type == 'error':
-                                result_code = runner1c.exit_code.EXIT_CODE['error']
+                                result_code = runner1c.exit_code.EXIT_CODE.error
                                 response_receive = True
                     except json.decoder.JSONDecodeError:
                         pass
@@ -195,7 +195,7 @@ class Command(abc.ABC):
                 result_sting = self._get_response_from_agent()
 
         else:
-            result_code = runner1c.exit_code.EXIT_CODE['done']
+            result_code = runner1c.exit_code.EXIT_CODE.done
 
         self.debug('result_call = %s', result_code)
 
@@ -305,11 +305,11 @@ class Command(abc.ABC):
 
             result_for_compare = common.delete_non_digit_element(line)
             if result_for_compare == '0':
-                result_code = runner1c.exit_code.EXIT_CODE['done']
+                result_code = runner1c.exit_code.EXIT_CODE.done
             elif result_for_compare == '101':
-                result_code = runner1c.exit_code.EXIT_CODE['done']
+                result_code = runner1c.exit_code.EXIT_CODE.done
             elif result_for_compare == '1':
-                result_code = runner1c.exit_code.EXIT_CODE['error']
+                result_code = runner1c.exit_code.EXIT_CODE.error
 
         self.debug('result_file = %s', result_for_compare)
         return result_code
@@ -394,7 +394,7 @@ class StartAgent(Command):
 
     @property
     def default_result(self):
-        return runner1c.exit_code.EXIT_CODE['done']
+        return runner1c.exit_code.EXIT_CODE.done
 
     @property
     def wait_result(self):
