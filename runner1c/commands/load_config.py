@@ -22,12 +22,10 @@ class LoadConfigParser(runner1c.parser.Parser):
 
 
 class LoadConfig(runner1c.command.Command):
-    @property
-    def builder_cmd(self):
-        builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self.arguments)
-        builder.add_string('/LoadConfigFromFiles "{folder}"')
+    def __init__(self, **kwargs):
+        kwargs['mode'] = runner1c.command.Mode.DESIGNER
+        super().__init__(**kwargs)
 
+        self.add_argument('/LoadConfigFromFiles "{folder}"')
         if getattr(self.arguments, 'update', False):
-            builder.add_string('/UpdateDBCfg')
-
-        return builder
+            self.add_argument('/UpdateDBCfg')

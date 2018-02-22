@@ -20,12 +20,9 @@ class CreateBaseParser(runner1c.parser.Parser):
 
 
 class RegServer(runner1c.command.Command):
-    @property
-    def builder_cmd(self):
-        builder = runner1c.cmd_string.CmdString()
-        builder.add_string('/RegServer -Auto')
-
-        return builder
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.add_argument('/RegServer -Auto')
 
     @property
     def default_result(self):

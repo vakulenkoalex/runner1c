@@ -1,4 +1,4 @@
-from . import parser, command, cmd_string, core
+from . import parser, command, core
 
-__all__ = [parser, command, cmd_string, core]
+__all__ = [parser, command, core]
 __version__ = 0.16

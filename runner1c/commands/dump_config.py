@@ -26,21 +26,19 @@ class DumpConfigParser(runner1c.parser.Parser):
 
 
 class DumpConfig(runner1c.command.Command):
-    @property
-    def builder_cmd(self):
-        builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self.arguments)
-        builder.add_string('/DumpConfigToFiles "{folder}" -Format Hierarchical')
+    def __init__(self, **kwargs):
+        kwargs['mode'] = runner1c.command.Mode.DESIGNER
+        super().__init__(**kwargs)
+        self.add_argument('/DumpConfigToFiles "{folder}" -Format Hierarchical')
 
         if getattr(self.arguments, 'update', False):
 
             # noinspection PyAttributeOutsideInit
             self._changes = tempfile.mktemp('.txt')
-            builder.add_string('-update -force -getChanges {changes}')
+            self.add_argument('-update -force -getChanges {changes}')
 
             setattr(self.arguments, 'changes', self._changes)
             self.debug('changes = %s', self._changes)
-
-        return builder
 
     def execute(self):
         if not getattr(self.arguments, 'update', False):

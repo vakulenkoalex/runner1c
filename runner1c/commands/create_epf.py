@@ -23,9 +23,7 @@ class CreateEpfParser(runner1c.parser.Parser):
 
 
 class CreateEpf(runner1c.command.Command):
-    @property
-    def builder_cmd(self):
-        builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self.arguments)
-        builder.add_string('/LoadExternalDataProcessorOrReportFromFiles "{xml}" "{epf}"')
-
-        return builder
+    def __init__(self, **kwargs):
+        kwargs['mode'] = runner1c.command.Mode.DESIGNER
+        super().__init__(**kwargs)
+        self.add_argument('/LoadExternalDataProcessorOrReportFromFiles "{xml}" "{epf}"')

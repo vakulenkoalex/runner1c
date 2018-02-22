@@ -31,13 +31,10 @@ class DumpEpfParser(runner1c.parser.Parser):
 
 
 class DumpEpf(runner1c.command.Command):
-    @property
-    def builder_cmd(self):
-        builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self.arguments)
-        builder.add_string('/DumpExternalDataProcessorOrReportToFiles "{temp_folder}" "{temp_epf}" '
-                           '-Format Hierarchical')
-
-        return builder
+    def __init__(self, **kwargs):
+        kwargs['mode'] = runner1c.command.Mode.DESIGNER
+        super().__init__(**kwargs)
+        self.add_argument('/DumpExternalDataProcessorOrReportToFiles "{temp_folder}" "{temp_epf}" -Format Hierarchical')
 
     @runner1c.command.create_base_if_necessary
     def execute(self):

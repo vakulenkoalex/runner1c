@@ -29,12 +29,10 @@ class PlatformCheckParser(runner1c.parser.Parser):
 
 
 class PlatformCheckConfig(runner1c.command.Command):
-    @property
-    def builder_cmd(self):
-        builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self.arguments)
-        builder.add_string('/CheckConfig {options}')
-
-        return builder
+    def __init__(self, **kwargs):
+        kwargs['mode'] = runner1c.command.Mode.DESIGNER
+        super().__init__(**kwargs)
+        self.add_argument('/CheckConfig {options}')
 
     def execute(self):
         return_code = self.start()

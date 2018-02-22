@@ -6,6 +6,7 @@ import os
 import subprocess
 import tempfile
 import time
+from enum import Enum
 
 import paramiko
 
@@ -19,23 +20,34 @@ def create_base_if_necessary(func):
             return func(self)
         else:
             return self.start_no_base()
+
     return wrapper
 
 
 class Command(abc.ABC):
     def __init__(self, **kwargs):
         self.arguments = copy.copy(kwargs['arguments'])
-        self._logger = logging.getLogger(self.name)
-
+        self._mode = kwargs.get('mode', None)
         agent_channel = kwargs.get('agent_channel', None)
+
+        self._logger = logging.getLogger(self.name)
+        self._need_close_agent = False
+        self._agent_started = False
+        self._cmd = []
+
+        if self._mode == Mode.DESIGNER:
+            self._set_designer()
+        elif self._mode == Mode.ENTERPRISE:
+            self._set_enterprise()
+        elif self._mode == Mode.CREATE:
+            self._set_create_base()
+        else:
+            self._add_argument_path_to_1c()
+
         # noinspection PyPep8
         if not agent_channel is None:
             self._client, self._channel = agent_channel
             self._agent_started = True
-            self._need_close_agent = False
-        else:
-            self._agent_started = False
-            self._need_close_agent = True
 
     @property
     def name(self):
@@ -53,26 +65,13 @@ class Command(abc.ABC):
     def wait_result(self):
         return True
 
-    @property
-    def builder_cmd(self):
-        return None
-
     # todo сделать вывод времени выполнения операции
     @create_base_if_necessary
     def execute(self):
-        if self.builder_cmd is None:
-            raise Exception('Need override builder_cmd')
-        else:
-            return self.start()
+        return self.start()
 
     def start(self):
-        self._set_path_1c()
-        self._set_log_result()
-
-        if getattr(self.arguments, 'connection', False):
-            self._set_connection_string()
-
-        call_string = self.builder_cmd.get_string().format(**vars(self.arguments))
+        call_string = self.get_string_for_call().format(**vars(self.arguments))
 
         self.debug('run = %s', call_string)
 
@@ -138,6 +137,7 @@ class Command(abc.ABC):
 
         # noinspection PyAttributeOutsideInit
         self._agent_started = True
+        self._need_close_agent = True
 
         # подключение к агенту
 
@@ -226,6 +226,56 @@ class Command(abc.ABC):
 
     def get_agent_channel(self):
         return self._client, self._channel
+
+    def add_argument(self, string):
+        self._cmd.append(string)
+
+    def get_string_for_call(self):
+        self._set_path_1c()
+        self._set_log_result()
+
+        if getattr(self.arguments, 'connection', False):
+            self._set_connection_string()
+
+        return ' '.join(self._cmd).format(**vars(self.arguments))
+
+    def _add_argument_path_to_1c(self):
+        self.add_argument('"{path_1c_exe}"')
+
+    def _add_argument_result(self):
+        self.add_argument('/DumpResult "{result}"')
+
+    def _add_arguments_for_enterprise_designer(self):
+        self.add_argument('/DisableStartupDialogs')
+        self.add_argument('/DisableStartupMessages')
+        if getattr(self.arguments, 'access', False):
+            self.add_argument('/UC "{access}"')
+        if getattr(self.arguments, 'login', False):
+            self.add_argument('/N "{login}"')
+        if getattr(self.arguments, 'password', False):
+            self.add_argument('/P "{password}"')
+
+    def _set_mode(self, mode):
+        self._add_argument_path_to_1c()
+        self.add_argument(mode.value)
+        self.add_argument('{connection_string}')
+        self.add_argument('/Out "{log}"')
+        self.add_argument('/L ru')
+
+    def _set_enterprise(self):
+        self._set_mode(Mode.ENTERPRISE)
+        self._add_arguments_for_enterprise_designer()
+
+    def _set_create_base(self):
+        self._set_mode(Mode.CREATE)
+        self._add_argument_result()
+
+    def _set_designer(self):
+        self._set_mode(Mode.DESIGNER)
+        self._add_arguments_for_enterprise_designer()
+        self._add_argument_result()
+        if not getattr(self.arguments, 'silent', False):
+            self.add_argument('/Visible')
 
     def _get_response_from_agent(self):
         while not self._channel.recv_ready():
@@ -352,8 +402,7 @@ class Command(abc.ABC):
             path = common.get_path_to_max_version_1c()
 
         file_name_1c = '1cv8.exe'
-        if self.builder_cmd.mode == runner1c.cmd_string.Mode.ENTERPRISE \
-                and not getattr(self.arguments, 'thick', False):
+        if self._mode == Mode.ENTERPRISE and not getattr(self.arguments, 'thick', False):
             file_name_1c = '1cv8c.exe'
 
         setattr(self.arguments, 'path_1c_exe', os.path.join(path, file_name_1c))
@@ -364,6 +413,12 @@ class Command(abc.ABC):
 
         if not self.arguments.external_log:
             common.delete_file(self.arguments.log)
+
+
+class Mode(Enum):
+    DESIGNER = 'DESIGNER'
+    ENTERPRISE = 'ENTERPRISE'
+    CREATE = 'CREATEINFOBASE'
 
 
 class EmptyParameters:
@@ -382,9 +437,9 @@ class EmptyParameters:
 
 
 class CreateBase(Command):
-    @property
-    def builder_cmd(self):
-        return runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.CREATE)
+    def __init__(self, **kwargs):
+        kwargs['mode'] = Mode.CREATE
+        super().__init__(**kwargs)
 
     @property
     def add_key_for_connection(self):
@@ -392,12 +447,10 @@ class CreateBase(Command):
 
 
 class StartAgent(Command):
-    @property
-    def builder_cmd(self):
-        builder = runner1c.cmd_string.CmdString(mode=runner1c.cmd_string.Mode.DESIGNER, parameters=self.arguments)
-        builder.add_string('/AgentMode /AgentSSHHostKeyAuto /AgentBaseDir "{folder}"')
-
-        return builder
+    def __init__(self, **kwargs):
+        kwargs['mode'] = Mode.DESIGNER
+        super().__init__(**kwargs)
+        self.add_argument('/AgentMode /AgentSSHHostKeyAuto /AgentBaseDir "{folder}"')
 
     @property
     def default_result(self):
