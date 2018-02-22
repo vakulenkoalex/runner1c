@@ -44,20 +44,24 @@ class Sync(runner1c.command.Command):
 
             self.start_agent()
 
-            source_map = self._get_source()
-            for path_source, path_binary in source_map.items():
-                if path_binary.endswith('.epf'):
-                    command = 'config load-ext-files --file="{}" --ext-file="{}"'.format(
-                        path_source, path_binary)
-                    return_code = self.send_to_agent(command)
-                    if not runner1c.exit_code.success_result(return_code):
-                        error_in_loop = True
-                        break
-                else:
-                    common.create_path(os.path.dirname(path_binary))
-                    shutil.copy(path_source, path_binary)
-
-            self.close_agent()
+            # noinspection PyPep8,PyBroadException
+            try:
+                source_map = self._get_source()
+                for path_source, path_binary in source_map.items():
+                    if path_binary.endswith('.epf'):
+                        command = 'config load-ext-files --file="{}" --ext-file="{}"'.format(
+                            path_source, path_binary)
+                        return_code = self.send_to_agent(command)
+                        if not runner1c.exit_code.success_result(return_code):
+                            error_in_loop = True
+                            break
+                    else:
+                        common.create_path(os.path.dirname(path_binary))
+                        shutil.copy(path_source, path_binary)
+            except:
+                result_code = runner1c.exit_code.EXIT_CODE.error
+            finally:
+                self.close_agent()
 
         else:
 

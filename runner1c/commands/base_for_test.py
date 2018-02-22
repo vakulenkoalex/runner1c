@@ -39,6 +39,7 @@ class CreateBaseForTest(runner1c.command.Command):
 
             self.start_agent()
 
+            # noinspection PyPep8,PyBroadException
             try:
                 command = 'config load-files --dir "{}\\{}" --update-config-dump-info'
                 return_code = self.send_to_agent(command.format(self.arguments.folder, folder_for_config_src))
@@ -59,6 +60,8 @@ class CreateBaseForTest(runner1c.command.Command):
                             setattr(p_sync, 'folder', self.arguments.folder)
                             setattr(p_sync, 'create', True)
                             return_code = sync.Sync(arguments=p_sync, agent_channel=self.get_agent_channel()).execute()
+            except:
+                return_code = runner1c.exit_code.EXIT_CODE.error
             finally:
                 self.close_agent()
 
