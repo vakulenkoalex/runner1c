@@ -43,7 +43,7 @@ def log_evaluation_time(method):
         result = method(self)
         stop = time.time()
 
-        self.debug('%s = %s', method.__name__, stop - start)
+        self.debug('time %s = %s', method.__name__, stop - start)
         return result
     return wrapper
 
