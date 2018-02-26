@@ -1,3 +1,5 @@
+import asyncio
+
 import runner1c
 import runner1c.commands.load_config
 import runner1c.commands.start
@@ -6,7 +8,7 @@ import runner1c.common as common
 import runner1c.exit_code as exit_code
 
 
-class CreateBaseForTestParser(runner1c.parser.Parser):
+class BaseForTestParser(runner1c.parser.Parser):
     @property
     def name(self):
         return 'base_for_test'
@@ -17,7 +19,7 @@ class CreateBaseForTestParser(runner1c.parser.Parser):
 
     # noinspection PyMethodMayBeStatic
     def create_handler(self, **kwargs):
-        return CreateBaseForTest(**kwargs)
+        return BaseForTest(**kwargs)
 
     def set_up(self):
         self.add_argument_to_parser()
@@ -27,7 +29,28 @@ class CreateBaseForTestParser(runner1c.parser.Parser):
                                                                                          'обработки репозитария')
 
 
-class CreateBaseForTest(runner1c.command.Command):
+async def start_1c(self, loop):
+    p_start = runner1c.command.EmptyParameters(self.arguments)
+    setattr(p_start, 'connection', self.arguments.connection)
+    setattr(p_start, 'thick', self.arguments.thick)
+    setattr(p_start, 'epf', common.get_path_to_project('build\\tools\\epf\\CloseAfterUpdate.epf'))
+    call_string = runner1c.commands.start.Start(arguments=p_start).get_string_for_call()
+    program, parameters = call_string.split(' ENTERPRISE')
+    process = await asyncio.create_subprocess_exec(program.replace('"', ''),
+                                                   'ENTERPRISE ' + parameters.replace('"', ''),
+                                                   loop=loop)
+    await process.wait()
+
+
+async def create_epf(self):
+    p_sync = runner1c.command.EmptyParameters(self.arguments)
+    setattr(p_sync, 'connection', self.arguments.connection)
+    setattr(p_sync, 'folder', self.arguments.folder)
+    setattr(p_sync, 'create', True)
+    sync.Sync(arguments=p_sync, agent_channel=self.get_agent_channel()).execute()
+
+
+class BaseForTest(runner1c.command.Command):
     def run(self):
         folder_for_config_src = 'cf'
 
@@ -47,18 +70,17 @@ class CreateBaseForTest(runner1c.command.Command):
                     return_code = self.send_to_agent('config update-db-cfg')
 
                     if exit_code.success_result(return_code):
-                        p_start = runner1c.command.EmptyParameters(self.arguments)
-                        setattr(p_start, 'connection', self.arguments.connection)
-                        setattr(p_start, 'thick', self.arguments.thick)
-                        setattr(p_start, 'epf', common.get_path_to_project('build\\tools\\epf\\CloseAfterUpdate.epf'))
-                        runner1c.commands.start.Start(arguments=p_start).execute()
+                        loop = asyncio.ProactorEventLoop()
+                        asyncio.set_event_loop(loop)
 
+                        tasks = []
                         if getattr(self.arguments, 'create_epf', False):
-                            p_sync = runner1c.command.EmptyParameters(self.arguments)
-                            setattr(p_sync, 'connection', self.arguments.connection)
-                            setattr(p_sync, 'folder', self.arguments.folder)
-                            setattr(p_sync, 'create', True)
-                            return_code = sync.Sync(arguments=p_sync, agent_channel=self.get_agent_channel()).execute()
+                            tasks.append(create_epf(self))
+                        tasks.append(start_1c(self, loop))
+
+                        loop.run_until_complete(asyncio.wait(tasks))
+                        loop.close()
+
             except:
                 return_code = runner1c.exit_code.EXIT_CODE.error
             finally:
