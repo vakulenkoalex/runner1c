@@ -38,12 +38,14 @@ def create_base_if_necessary(func):
 
 
 def log_evaluation_time(method):
-    def wrapper(self):
+    def wrapper(*arg):
         start = time.time()
-        result = method(self)
+        result = method(*arg)
         stop = time.time()
-
+        
+        self = arg[0]
         self.debug('time %s = %s', method.__name__, stop - start)
+        
         return result
     return wrapper
 
