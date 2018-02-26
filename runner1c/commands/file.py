@@ -22,7 +22,7 @@ class FileParser(runner1c.parser.Parser):
 
 
 class File(runner1c.command.Command):
-    def execute(self):
+    def run(self):
         params_file = open(self.arguments.params, mode='r+b')
         byte_string = params_file.read(-1)
         params_file.close()

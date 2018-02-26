@@ -36,8 +36,7 @@ class DumpEpf(runner1c.command.Command):
         super().__init__(**kwargs)
         self.add_argument('/DumpExternalDataProcessorOrReportToFiles "{temp_folder}" "{temp_epf}" -Format Hierarchical')
 
-    @runner1c.command.create_base_if_necessary
-    def execute(self):
+    def run(self):
         temp_folder = tempfile.mkdtemp()
         temp_epf = tempfile.mktemp('.epf')
         shutil.copy(self.arguments.epf, temp_epf)

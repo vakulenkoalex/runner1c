@@ -19,6 +19,6 @@ class VersionParser(runner1c.parser.Parser):
 
 
 class Version(runner1c.command.Command):
-    def execute(self):
+    def run(self):
         print(runner1c.__version__)
         return 0

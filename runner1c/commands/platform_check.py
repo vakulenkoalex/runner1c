@@ -34,7 +34,7 @@ class PlatformCheckConfig(runner1c.command.Command):
         super().__init__(**kwargs)
         self.add_argument('/CheckConfig {options}')
 
-    def execute(self):
+    def run(self):
         return_code = self.start()
 
         _delete_plug_function(self.arguments.log)

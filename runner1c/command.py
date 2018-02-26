@@ -19,8 +19,32 @@ def create_base_if_necessary(func):
         if getattr(self.arguments, 'connection', False):
             return func(self)
         else:
-            return self.start_no_base()
+            temp_folder = tempfile.mkdtemp()
+            connection = 'File={}'.format(temp_folder)
 
+            p_create_base = runner1c.command.EmptyParameters(self.arguments)
+            setattr(p_create_base, 'connection', connection)
+            return_code = CreateBase(arguments=p_create_base).execute()
+
+            if runner1c.exit_code.success_result(return_code):
+                setattr(self.arguments, 'connection', connection)
+                return_code = self.execute()
+
+            common.clear_folder(temp_folder)
+
+            return return_code
+
+    return wrapper
+
+
+def log_evaluation_time(method):
+    def wrapper(self):
+        start = time.time()
+        result = method(self)
+        stop = time.time()
+
+        self.debug('%s = %s', method.__name__, stop - start)
+        return result
     return wrapper
 
 
@@ -30,10 +54,10 @@ class Command(abc.ABC):
         self._mode = kwargs.get('mode', None)
         agent_channel = kwargs.get('agent_channel', None)
 
-        self._logger = logging.getLogger(self.name)
         self._need_close_agent = False
         self._agent_started = False
         self._cmd = []
+        self._logger = logging.getLogger(self.name)
 
         if self._mode == Mode.DESIGNER:
             self._set_designer()
@@ -65,9 +89,12 @@ class Command(abc.ABC):
     def wait_result(self):
         return True
 
-    # todo сделать вывод времени выполнения операции
-    @create_base_if_necessary
     def execute(self):
+        return self.run()
+
+    @log_evaluation_time
+    @create_base_if_necessary
+    def run(self):
         return self.start()
 
     def start(self):
@@ -97,29 +124,11 @@ class Command(abc.ABC):
 
         return return_code
 
-    def start_no_base(self):
-        temp_folder = tempfile.mkdtemp()
-        connection = 'File={}'.format(temp_folder)
-
-        p_create_base = runner1c.command.EmptyParameters(self.arguments)
-        setattr(p_create_base, 'connection', connection)
-        return_code = CreateBase(arguments=p_create_base).execute()
-
-        if runner1c.exit_code.success_result(return_code):
-            setattr(self.arguments, 'connection', connection)
-            return_code = self.execute()
-
-        common.clear_folder(temp_folder)
-
-        return return_code
-
+    @log_evaluation_time
     def get_module_ordinary_form(self, dir_for_scan):
-        start = time.time()
         for folder in dir_for_scan:
             for bin_form in self._find_bin_forms(folder):
                 self._parse_module_from_bin(bin_form)
-        stop = time.time()
-        self.debug('get_module_ordinary_form time = %s', stop - start)
 
     def debug(self, msg, *args):
         self._logger.debug(msg, *args)

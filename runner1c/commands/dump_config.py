@@ -40,7 +40,7 @@ class DumpConfig(runner1c.command.Command):
             setattr(self.arguments, 'changes', self._changes)
             self.debug('changes = %s', self._changes)
 
-    def execute(self):
+    def run(self):
         if not getattr(self.arguments, 'update', False):
             common.clear_folder(self.arguments.folder)
 

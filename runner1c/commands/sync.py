@@ -33,8 +33,7 @@ class Sync(runner1c.command.Command):
     def default_result(self):
         return runner1c.exit_code.EXIT_CODE.done
 
-    @runner1c.command.create_base_if_necessary
-    def execute(self):
+    def run(self):
         # noinspection PyAttributeOutsideInit
         self.files_hash = {}
         result_code = self.default_result
