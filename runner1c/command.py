@@ -98,7 +98,7 @@ class Command(abc.ABC):
         return self.start()
 
     def start(self):
-        call_string = self.get_string_for_call().format(**vars(self.arguments))
+        call_string = self.get_string_for_call()
 
         self.debug('run = %s', call_string)
 
