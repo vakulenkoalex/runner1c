@@ -40,11 +40,11 @@ class DumpConfig(runner1c.command.Command):
             setattr(self.arguments, 'changes', self._changes)
             self.debug('changes = %s', self._changes)
 
-    def run(self):
+    def execute(self):
         if not getattr(self.arguments, 'update', False):
             common.clear_folder(self.arguments.folder)
 
-        return_code = self.start()
+        return_code = self.run()
 
         folders_for_scan = [self.arguments.folder]
         if getattr(self.arguments, 'update', False):
