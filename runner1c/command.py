@@ -97,34 +97,7 @@ class Command(abc.ABC):
     @log_evaluation_time
     @create_base_if_necessary
     def run(self):
-        return self.start()
-
-    def start(self):
-        call_string = self.get_string_for_call()
-
-        self.debug('run = %s', call_string)
-
-        if self.wait_result:
-            result_call = subprocess.call(call_string)
-            self.debug('result_call = %s', result_call)
-
-            if self.arguments.log.endswith('html'):
-                common.save_as_html(self.arguments.log)
-
-            return_code = self._get_result_from_file()
-            self.debug('exit_code = %s', return_code)
-
-            if not self.arguments.debug:
-                self._delete_temp_files()
-        else:
-            return_code = self.default_result
-            # noinspection PyPep8,PyBroadException
-            try:
-                subprocess.Popen('start "no wait" ' + call_string, shell=True)
-            except:
-                return_code = runner1c.exit_code.EXIT_CODE.error
-
-        return return_code
+        return self._start()
 
     @log_evaluation_time
     def get_module_ordinary_form(self, dir_for_scan):
@@ -249,6 +222,33 @@ class Command(abc.ABC):
             self._set_connection_string()
 
         return ' '.join(self._cmd).format(**vars(self.arguments))
+
+    def _start(self):
+        call_string = self.get_string_for_call()
+
+        self.debug('run = %s', call_string)
+
+        if self.wait_result:
+            result_call = subprocess.call(call_string)
+            self.debug('result_call = %s', result_call)
+
+            if self.arguments.log.endswith('html'):
+                common.save_as_html(self.arguments.log)
+
+            return_code = self._get_result_from_file()
+            self.debug('exit_code = %s', return_code)
+
+            if not self.arguments.debug:
+                self._delete_temp_files()
+        else:
+            return_code = self.default_result
+            # noinspection PyPep8,PyBroadException
+            try:
+                subprocess.Popen('start "no wait" ' + call_string, shell=True)
+            except:
+                return_code = runner1c.exit_code.EXIT_CODE.error
+
+        return return_code
 
     def _add_argument_path_to_1c(self):
         self.add_argument('"{path_1c_exe}"')
