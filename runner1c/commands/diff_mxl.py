@@ -22,7 +22,7 @@ class DiffMxlParser(runner1c.parser.Parser):
 
 
 class DiffMxl(runner1c.command.Command):
-    def run(self):
+    def execute(self):
         p_start = runner1c.command.EmptyParameters(self.arguments)
         setattr(p_start, 'thick', True)
         setattr(p_start, 'epf', common.get_path_to_project('build\\tools\\epf\\FileCompareMxl.epf'))

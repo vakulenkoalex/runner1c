@@ -51,7 +51,7 @@ async def create_epf(self):
 
 
 class BaseForTest(runner1c.command.Command):
-    def run(self):
+    def execute(self):
         folder_for_config_src = 'cf'
 
         p_create = runner1c.command.EmptyParameters(self.arguments)
