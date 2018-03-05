@@ -1,7 +1,3 @@
-"""
-script for start 1C with parameter
-"""
-
 import argparse
 import inspect
 import logging
@@ -41,6 +37,14 @@ def _add_common_argument(parser):
     parser.add_argument('--debug', action='store_const', const=True, help='отладка')
 
 
+def _check_override_methods(command):
+    methods = ['run']
+    for name in methods:
+        class_command = command.__class__
+        if class_command.__dict__.get(name, None) is not None:
+            raise Exception('{} override method {}'.format(class_command.__name__, name))
+
+
 # noinspection PyUnusedLocal
 def main(string=None, as_module=False):
     commands = {}
@@ -62,6 +66,8 @@ def main(string=None, as_module=False):
         logging.basicConfig(level=logging.DEBUG)
 
     handler = commands[arguments.command].create_handler(arguments=arguments)
+    _check_override_methods(handler)
+
     return handler.execute()
 
 
