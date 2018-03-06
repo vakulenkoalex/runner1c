@@ -74,10 +74,6 @@ class Command(abc.ABC):
     def add_key_for_connection(self):
         return True
 
-    @property
-    def wait_result(self):
-        return True
-
     def execute(self):
         return self.run()
 
@@ -86,10 +82,9 @@ class Command(abc.ABC):
         return self._start()
 
     def get_module_ordinary_form(self, dir_for_scan):
-         for folder in dir_for_scan:
+        for folder in dir_for_scan:
             for bin_form in self._find_bin_forms(folder):
                 self._parse_module_from_bin(bin_form)
-
 
     def debug(self, msg, *args):
         self._logger.debug(msg, *args)
@@ -214,25 +209,17 @@ class Command(abc.ABC):
 
         self.debug('run1C = %s', call_string)
 
-        if self.wait_result:
-            result_call = subprocess.call(call_string)
-            self.debug('result_run1C = %s', result_call)
+        result_call = subprocess.call(call_string)
+        self.debug('result_run1C = %s', result_call)
 
-            if self.arguments.log.endswith('html'):
-                common.save_as_html(self.arguments.log)
+        if self.arguments.log.endswith('html'):
+            common.save_as_html(self.arguments.log)
 
-            return_code = self._get_result_from_file()
-            self.debug('exit_code = %s', return_code)
+        return_code = self._get_result_from_file()
+        self.debug('exit_code = %s', return_code)
 
-            if not self.arguments.debug:
-                self._delete_temp_files()
-        else:
-            return_code = self.default_result
-            # noinspection PyPep8,PyBroadException
-            try:
-                subprocess.Popen('start "no wait" ' + call_string, shell=True)
-            except:
-                return_code = runner1c.exit_code.EXIT_CODE.error
+        if not self.arguments.debug:
+            self._delete_temp_files()
 
         return return_code
 
@@ -453,6 +440,14 @@ class StartAgent(Command):
     def default_result(self):
         return runner1c.exit_code.EXIT_CODE.done
 
-    @property
-    def wait_result(self):
-        return False
+    def execute(self):
+        call_string = self.get_string_for_call()
+        return_code = self.default_result
+
+        # noinspection PyPep8,PyBroadException
+        try:
+            subprocess.Popen('start "no wait" ' + call_string, shell=True)
+        except:
+            return_code = runner1c.exit_code.EXIT_CODE.error
+
+        return return_code
