@@ -38,7 +38,7 @@ class DumpConfig(runner1c.command.Command):
             self.add_argument('-update -force -getChanges {changes}')
 
             setattr(self.arguments, 'changes', self._changes)
-            self.debug('changes = %s', self._changes)
+            self.debug('changes "%s"', self._changes)
 
     def execute(self):
         if not getattr(self.arguments, 'update', False):

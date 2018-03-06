@@ -131,7 +131,7 @@ class Command(abc.ABC):
             raise Exception('Agent not started')
 
         result_code = runner1c.exit_code.EXIT_CODE.error
-        self.debug('run = %s', command)
+        self.debug('agent send "%s"', command)
 
         self._channel.send(command + '\n')
 
@@ -142,8 +142,6 @@ class Command(abc.ABC):
             response_receive = False
 
             while not response_receive:
-
-                self.debug('response = %s', result_sting)
 
                 for line in result_sting.split(']'):
                     if len(line.strip()) == 0:
@@ -169,7 +167,7 @@ class Command(abc.ABC):
         else:
             result_code = runner1c.exit_code.EXIT_CODE.done
 
-        self.debug('result_call = %s', result_code)
+        self.debug('agent response result = %s', result_code)
 
         return result_code
 
@@ -207,16 +205,16 @@ class Command(abc.ABC):
     def _start(self):
         call_string = self.get_string_for_call()
 
-        self.debug('run1C = %s', call_string)
+        self.debug('run1C %s', call_string)
 
         result_call = subprocess.call(call_string)
-        self.debug('result_run1C = %s', result_call)
+        self.debug('result run1C = %s', result_call)
 
         if self.arguments.log.endswith('html'):
             common.save_as_html(self.arguments.log)
 
         return_code = self._get_result_from_file()
-        self.debug('exit_code = %s', return_code)
+        self.debug('exit code = %s', return_code)
 
         if not self.arguments.debug:
             self._delete_temp_files()
@@ -267,7 +265,10 @@ class Command(abc.ABC):
         time.sleep(1)
         result = self._channel.recv(99999)
 
-        return result.decode()
+        response = result.decode()
+        self.debug('agent response "%s"', response)
+
+        return response
 
     def _set_connection(self, connection):
         setattr(self.arguments, 'connection', connection)
@@ -352,7 +353,7 @@ class Command(abc.ABC):
             elif result_for_compare == '1':
                 result_code = runner1c.exit_code.EXIT_CODE.error
 
-        self.debug('result_file = %s', result_for_compare)
+        self.debug('result from file = %s', result_for_compare)
         return result_code
 
     def _set_log_result(self):

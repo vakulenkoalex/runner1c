@@ -65,14 +65,14 @@ def main(string=None, as_module=False):
     if arguments.debug:
         logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(name)12s - %(message)s')
 
-    logger = logging.getLogger('core')
+    logger = logging.getLogger('Core')
     logger.debug('start')
 
     handler = commands[arguments.command].create_handler(arguments=arguments)
     _check_override_methods(handler)
     return_code = handler.execute()
 
-    logger.debug('exit_code = %s', return_code)
+    logger.debug('exit code = %s', return_code)
 
     return return_code
 
