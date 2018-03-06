@@ -37,19 +37,6 @@ def create_base_if_necessary(func):
     return wrapper
 
 
-def log_evaluation_time(method):
-    def wrapper(*arg):
-        start = time.time()
-        result = method(*arg)
-        stop = time.time()
-        
-        self = arg[0]
-        self.debug('time %s = %s', method.__name__, stop - start)
-        
-        return result
-    return wrapper
-
-
 class Command(abc.ABC):
     def __init__(self, **kwargs):
         self.arguments = copy.copy(kwargs['arguments'])
@@ -94,16 +81,15 @@ class Command(abc.ABC):
     def execute(self):
         return self.run()
 
-    @log_evaluation_time
     @create_base_if_necessary
     def run(self):
         return self._start()
 
-    @log_evaluation_time
     def get_module_ordinary_form(self, dir_for_scan):
-        for folder in dir_for_scan:
+         for folder in dir_for_scan:
             for bin_form in self._find_bin_forms(folder):
                 self._parse_module_from_bin(bin_form)
+
 
     def debug(self, msg, *args):
         self._logger.debug(msg, *args)
@@ -226,11 +212,11 @@ class Command(abc.ABC):
     def _start(self):
         call_string = self.get_string_for_call()
 
-        self.debug('run = %s', call_string)
+        self.debug('run1C = %s', call_string)
 
         if self.wait_result:
             result_call = subprocess.call(call_string)
-            self.debug('result_call = %s', result_call)
+            self.debug('result_run1C = %s', result_call)
 
             if self.arguments.log.endswith('html'):
                 common.save_as_html(self.arguments.log)

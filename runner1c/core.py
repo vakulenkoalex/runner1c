@@ -63,12 +63,18 @@ def main(string=None, as_module=False):
     arguments = parser.parse_args(list_argument)
 
     if arguments.debug:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(name)12s - %(message)s')
+
+    logger = logging.getLogger('core')
+    logger.debug('start')
 
     handler = commands[arguments.command].create_handler(arguments=arguments)
     _check_override_methods(handler)
+    return_code = handler.execute()
 
-    return handler.execute()
+    logger.debug('exit_code = %s', return_code)
+
+    return return_code
 
 
 if __name__ == '__main__':
