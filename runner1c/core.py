@@ -45,8 +45,7 @@ def _check_override_methods(command):
             raise Exception('{} override method {}'.format(class_command.__name__, name))
 
 
-# noinspection PyUnusedLocal
-def main(string=None, as_module=False):
+def main(string=None):
     commands = {}
 
     parser = argparse.ArgumentParser()
@@ -75,7 +74,3 @@ def main(string=None, as_module=False):
     logger.debug('exit code = %s', return_code)
 
     return return_code
-
-
-if __name__ == '__main__':
-    sys.exit(main(as_module=True))
