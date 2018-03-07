@@ -104,3 +104,4 @@ ENV/
 /build/*
 !/build/README.md
 .pytest_cache/
+tests/repo/build/
