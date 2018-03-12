@@ -45,7 +45,7 @@ def _check_override_methods(command):
             raise Exception('{} override method {}'.format(class_command.__name__, name))
 
 
-def main(string=None):
+def main(list=None):
     commands = {}
 
     parser = argparse.ArgumentParser()
@@ -55,14 +55,15 @@ def main(string=None):
     subparsers.required = True
     _load_plugins(commands, subparsers)
 
-    if string is None:
+    if list is None:
         list_argument = sys.argv[1:]
     else:
-        list_argument = string.split(' ')
+        list_argument = list
+
     arguments = parser.parse_args(list_argument)
 
     if arguments.debug:
-        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(name)12s - %(message)s')
+        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(name)19s - %(message)s')
 
     logger = logging.getLogger('Core')
     logger.debug('start')
@@ -74,3 +75,7 @@ def main(string=None):
     logger.debug('exit code = %s', return_code)
 
     return return_code
+
+
+if __name__ == '__main__':
+    sys.exit(main())

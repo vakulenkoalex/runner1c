@@ -32,4 +32,4 @@ class File(runner1c.command.Command):
         except UnicodeDecodeError:
             string = byte_string.decode('cp1251')
 
-        return runner1c.core.main(string=json.loads(string))
+        return runner1c.core.main(list=json.loads(string))
