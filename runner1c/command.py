@@ -204,14 +204,14 @@ class Command(abc.ABC):
 
     def _start(self):
         call_string = self.get_string_for_call()
-
         self.debug('run1C %s', call_string)
-
         result_call = subprocess.call(call_string)
         self.debug('result run1C = %s', result_call)
 
-        if self.arguments.log.endswith('html'):
-            common.save_as_html(self.arguments.log)
+        if os.path.exists(self.arguments.log):
+            common.convert_cp1251_to_utf8(self.arguments.log)
+            if self.arguments.log.endswith('html'):
+                common.save_as_html(self.arguments.log)
 
         return_code = self._get_result_from_file()
         self.debug('exit code = %s', return_code)
