@@ -20,8 +20,7 @@ class PlatformCheckParser(runner1c.parser.Parser):
 
     def set_up(self):
         self.add_argument_to_parser()
-        self._parser.add_argument('--options', required=True, help='опции проверки. Указываются с "-" и '
-                                                                   'как в справке 1с')
+        self._parser.add_argument('--options', required=True, help='опции проверки как в справке 1с')
         self._parser.add_argument('--skip_error', help='путь к файлу с ошибками-исключениями')
         self._parser.add_argument('--skip_object', help='путь к файлу с объектами, в которых ошибки игнорируются')
         self._parser.add_argument('--skip_modality', help='путь к файлу с объектами, в которых игнорируются ошибки '
@@ -33,6 +32,7 @@ class PlatformCheckConfig(runner1c.command.Command):
         kwargs['mode'] = runner1c.command.Mode.DESIGNER
         super().__init__(**kwargs)
         self.add_argument('/CheckConfig {options}')
+        self.arguments.options = ' '.join(['-' + x for x in self.arguments.options.split(' ')])
 
     def execute(self):
         return_code = self.run()
