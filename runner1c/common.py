@@ -35,17 +35,17 @@ def get_path_to_max_version_1c():
 
 
 def save_as_html(file_name):
-    new_log_file = tempfile.mktemp('.txt')
+    new_file = tempfile.mktemp('.txt')
 
-    with open(new_log_file, mode='w', encoding='cp1251') as new_log_file_stream, \
-            open(file_name, mode='r', encoding='cp1251') as log_file:
+    with open(new_file, mode='w', encoding='utf8') as new_file_stream, \
+            open(file_name, mode='r', encoding='utf8') as log_file:
         for line in log_file:
-            new_log_file_stream.write(line.replace('\n', '<br>\n'))
+            new_file_stream.write(line.replace('\n', '<br>\n'))
 
     log_file.close()
-    new_log_file_stream.close()
+    new_file_stream.close()
 
-    _convert_encoding(new_log_file, file_name)
+    shutil.move(new_file, file_name)
 
 
 def delete_non_digit_element(line):
@@ -83,13 +83,10 @@ def folder_for_class_1c(name):
     return result
 
 
-def _convert_encoding(old, new):
-    new_file = open(new, mode='bw')
-    old_file = open(old, mode='br')
-    new_file.write(old_file.read().decode('cp1251').encode('utf-8'))
-
-
-
-
-
-
+def convert_cp1251_to_utf8(file_name):
+    new_file = tempfile.mktemp('.txt')
+    with open(new_file, mode='bw') as new_file_stream, open(file_name, mode='br') as old_file_stream:
+        new_file_stream.write(old_file_stream.read().decode('cp1251').encode('utf-8'))
+    new_file_stream.close()
+    old_file_stream.close()
+    shutil.move(new_file, file_name)
