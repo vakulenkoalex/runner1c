@@ -31,8 +31,13 @@ class PlatformCheckConfig(runner1c.command.Command):
     def __init__(self, **kwargs):
         kwargs['mode'] = runner1c.command.Mode.DESIGNER
         super().__init__(**kwargs)
-        self.add_argument('/CheckConfig {options}')
-        self.arguments.options = ' '.join(['-' + x for x in self.arguments.options.split(' ')])
+
+        options_without_commas = self.arguments.options
+        if options_without_commas.startswith('"') and options_without_commas.endswith('"'):
+            options_without_commas = options_without_commas[1:-1]
+
+        self.arguments.options1c = ' '.join(['-' + x for x in options_without_commas.split(' ')])
+        self.add_argument('/CheckConfig "{options1c}"')
 
     def execute(self):
         return_code = self.run()
