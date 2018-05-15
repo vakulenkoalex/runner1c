@@ -45,7 +45,7 @@ def _check_override_methods(command):
             raise Exception('{} override method {}'.format(class_command.__name__, name))
 
 
-def main(list=None):
+def main(arg=None):
     commands = {}
 
     parser = argparse.ArgumentParser()
@@ -55,10 +55,10 @@ def main(list=None):
     subparsers.required = True
     _load_plugins(commands, subparsers)
 
-    if list is None:
+    if arg is None:
         list_argument = sys.argv[1:]
     else:
-        list_argument = list
+        list_argument = arg
 
     arguments = parser.parse_args(list_argument)
 
