@@ -105,3 +105,4 @@ ENV/
 !/build/README.md
 .pytest_cache/
 tests/repo/build/
+ConfigDumpInfo.xml
