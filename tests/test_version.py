@@ -1,3 +1,4 @@
+import os
 import subprocess
 
 import pytest
@@ -28,3 +29,15 @@ def test_version_cli():
     out, err, exitcode = capture(command)
     assert exitcode == 0
     assert out.decode() == str(runner1c.__version__) + '\r\n'
+
+
+@pytest.mark.usefixtures("set_log_level")
+def test_version_file(capsys, runner):
+    test_dir = os.path.dirname(__file__)
+    repo_folder = test_dir + '\\repo'
+    file = repo_folder + '\\file.json'
+    argument = ['--debug', 'file', '--params', file]
+    assert runner(argument) == 0
+
+    captured = capsys.readouterr()
+    assert captured.out == str(runner1c.__version__) + '\n'
