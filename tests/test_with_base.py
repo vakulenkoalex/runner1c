@@ -1,10 +1,11 @@
 # todo убрать задвоенность в test_platform_check
 # todo RunShortcut v8i
-# todo dump config update
 # todo вынести место расположения тестового repo из тестов, чтобы можно было менять в одном месте
 
-import os.path
 import distutils.dir_util as copy_tree
+import os.path
+import shutil
+import xml.etree.ElementTree as ElementTree
 
 import pytest
 
@@ -175,5 +176,44 @@ def test_platform_dump_config(tmpdir, runner, base_dir):
                 'File={}'.format(base_dir),
                 '--folder',
                 folder]
+
     assert runner(argument) == 0
-    assert os.path.exists(folder + '\DataProcessors\Обработка1\Forms\Форма\Ext\Form\Module.bsl')
+
+    assert os.path.exists(os.path.join(folder,
+                                       'DataProcessors',
+                                       'Обработка1',
+                                       'Forms',
+                                       'Форма',
+                                       'Ext',
+                                       'Form',
+                                       'Module.bsl'))
+
+    version_file = os.path.join(folder, 'ConfigDumpInfo.xml')
+    assert os.path.exists(version_file)
+
+    # изменяем версию справочника
+    tree = ElementTree.parse(version_file)
+    root = tree.getroot()
+    for element in root.iter():
+        if element.attrib.get('name') == 'Language.Русский':
+            element.attrib['configVersion'] = '5f1e3d878d463f46a15629df9638d63900000000'
+    tree.write(version_file, encoding='utf-8')
+
+    folder_update = str(tmpdir.join("cf_update"))
+    os.mkdir(folder_update)
+    shutil.move(version_file, os.path.join(folder_update, 'ConfigDumpInfo.xml'))
+    argument = ['--debug',
+                'dump_config',
+                '--connection',
+                'File={}'.format(base_dir),
+                '--folder',
+                folder_update,
+                '--update']
+    assert runner(argument) == 0
+
+    count_file = 0
+    for root, dirs, files in os.walk(folder_update):
+        count_file = count_file + len(files)
+    assert count_file == 2
+
+    assert os.path.exists(os.path.join(folder_update, 'Languages', 'Русский.xml'))
