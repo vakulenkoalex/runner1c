@@ -1,10 +1,10 @@
 # todo убрать задвоенность в test_platform_check
 # todo RunShortcut v8i
-# todo start without base
 # todo dump config update
-# todo sync (epf в src)
+# todo вынести место расположения тестового repo из тестов, чтобы можно было менять в одном месте
 
 import os.path
+import distutils.dir_util as copy_tree
 
 import pytest
 
@@ -57,6 +57,26 @@ def test_base_for_test(tmpdir, runner, base_dir):
                 '--option',
                 result]
     assert runner(argument) == 0
+
+
+@pytest.mark.dependency(depends=["test_base_for_test"])
+@pytest.mark.usefixtures("set_log_level")
+def test_sync(tmpdir, runner):
+    test_dir = os.path.dirname(__file__)
+    repo_folder = test_dir + '\\repo'
+    new_repo = str(tmpdir.join("repo"))
+    old_build = os.path.join(repo_folder, 'build')
+    new_build = os.path.join(new_repo, 'build')
+    copy_tree.copy_tree(old_build, new_build)
+
+    argument = ['--debug',
+                'sync',
+                '--folder',
+                new_repo]
+    assert runner(argument) == 0
+
+    assert os.path.exists(os.path.join(repo_folder, 'epf', 'ПроверитьКонфигурацию.xml'))
+    assert os.path.exists(os.path.join(repo_folder, 'feature', 'Example.data'))
 
 
 @pytest.mark.dependency(depends=["test_base_for_test"])
