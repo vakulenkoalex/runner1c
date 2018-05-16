@@ -53,12 +53,9 @@ class DumpConfig(runner1c.command.Command):
                 text = file.read()
             file.close()
 
-            if common.delete_non_digit_element(text) == '':
-                folders_for_scan = []
-            else:
-                forms = re.compile('.*\.Form.*\.Form', re.MULTILINE).findall(text)
-                if len(forms) > 0:
-                    folders_for_scan = self._get_path_changed_forms(forms)
+            forms = re.compile('.*\.Form.*\.Form', re.MULTILINE).findall(text)
+            if len(forms) > 0:
+                folders_for_scan = self._get_path_changed_forms(forms)
 
             # noinspection PyUnboundLocalVariable
             common.delete_file(self._changes)
