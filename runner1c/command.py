@@ -187,6 +187,9 @@ class Command(abc.ABC):
         # noinspection PyAttributeOutsideInit
         self._agent_started = False
 
+        # при старте агента 1с создает файл с настройками клиента, нужно его удалить
+        common.delete_file(common.get_path_to_script('1cv8u.pfl'))
+
     def get_agent_channel(self):
         return self._client, self._channel
 
