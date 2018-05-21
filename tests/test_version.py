@@ -32,10 +32,8 @@ def test_version_cli():
 
 
 @pytest.mark.usefixtures("set_log_level")
-def test_version_file(capsys, runner):
-    test_dir = os.path.dirname(__file__)
-    repo_folder = test_dir + '\\repo'
-    file = repo_folder + '\\file.json'
+def test_version_file(capsys, runner, repo_folder):
+    file = os.path.join(repo_folder, 'file.json')
     argument = ['--debug', 'file', '--params', file]
     assert runner(argument) == 0
 

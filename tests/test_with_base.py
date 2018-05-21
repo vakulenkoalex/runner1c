@@ -1,6 +1,5 @@
-# todo убрать задвоенность в test_platform_check
+# todo убрать задвоенность в test_platform_check и count_lines_in_file
 # todo RunShortcut v8i
-# todo вынести место расположения тестового repo из тестов, чтобы можно было менять в одном месте
 
 import distutils.dir_util as copy_tree
 import os.path
@@ -62,9 +61,7 @@ def test_base_for_test(tmpdir, runner, base_dir):
 
 @pytest.mark.dependency(depends=["test_base_for_test"])
 @pytest.mark.usefixtures("set_log_level")
-def test_sync(tmpdir, runner):
-    test_dir = os.path.dirname(__file__)
-    repo_folder = test_dir + '\\repo'
+def test_sync(tmpdir, runner, repo_folder):
     new_repo = str(tmpdir.join("repo"))
     old_build = os.path.join(repo_folder, 'build')
     new_build = os.path.join(new_repo, 'build')
