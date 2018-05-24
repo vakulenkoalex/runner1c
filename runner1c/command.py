@@ -293,13 +293,13 @@ class Command(abc.ABC):
         self.debug('parse %s', file_name)
 
         file_path = os.path.split(file_name)[0]
-        module_path = file_path + '\\Form'
+        module_path = os.path.join(file_path, 'Form')
         if not os.path.exists(module_path):
             os.mkdir(module_path)
 
         find_string = 0
         open_file = False
-        module_file_name = module_path + '\\Module.bsl'
+        module_file_name = os.path.join(module_path, 'Module.bsl')
 
         origin_file = open(file_name, mode='rb')
 

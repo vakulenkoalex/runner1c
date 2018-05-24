@@ -27,8 +27,8 @@ def count_lines_in_file(file):
 @pytest.mark.usefixtures("set_log_level")
 def test_base_for_test(tmpdir, runner, base_dir):
     test_dir = os.path.dirname(__file__)
-    repo_folder = test_dir + '\\repo'
-    epf = repo_folder + '\\build\\epf\\ПроверитьКонфигурацию.epf'
+    repo_folder = os.path.join(test_dir, 'repo')
+    epf = os.path.join(repo_folder, 'build', 'epf', 'ПроверитьКонфигурацию.epf')
     result = str(tmpdir.join("result.txt"))
 
     argument = ['--debug',
