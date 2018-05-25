@@ -1,4 +1,4 @@
 from . import parser, command, core
 
 __all__ = [parser, command, core]
-__version__ = 0.18
+__version__ = 0.19
