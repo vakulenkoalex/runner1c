@@ -1,6 +1,7 @@
 import os
 
 import runner1c
+import runner1c.commands.start
 import runner1c.common as common
 import runner1c.exit_code as exit_code
 
@@ -31,7 +32,7 @@ class AddExtensions(runner1c.command.Command):
 
         self.start_agent()
 
-        # noinspection PyPep8
+        # noinspection PyPep8,PyBroadException
         try:
             for name in extensions_name:
                 command = 'config load-files --dir "{}" --extension {}'
