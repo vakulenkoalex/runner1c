@@ -8,7 +8,7 @@ class LoadConfigParser(runner1c.parser.Parser):
 
     @property
     def description(self):
-        return 'загрузка конфигурации из файлов'
+        return 'загрузка конфигурации из исходников'
 
     # noinspection PyMethodMayBeStatic
     def create_handler(self, **kwargs):
