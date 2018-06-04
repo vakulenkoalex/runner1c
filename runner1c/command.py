@@ -208,7 +208,12 @@ class Command(abc.ABC):
     def _start(self):
         call_string = self.get_string_for_call()
         self.debug('run1C %s', call_string)
-        result_call = subprocess.call(call_string)
+
+        if getattr(self.arguments, 'timeout', 0) > 0:
+            result_call = subprocess.call(call_string, timeout=self.arguments.timeout)
+        else:
+            result_call = subprocess.call(call_string)
+
         self.debug('result run1C = %s', result_call)
 
         if os.path.exists(self.arguments.log):
