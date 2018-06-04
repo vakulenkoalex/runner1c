@@ -70,8 +70,9 @@ class BaseForTest(runner1c.command.Command):
 
             # noinspection PyPep8,PyBroadException
             try:
-                command = 'config load-files --dir "{}\\{}" --update-config-dump-info'
-                return_code = self.send_to_agent(command.format(self.arguments.folder, folder_for_config_src))
+                command = 'config load-files --dir "{}" --update-config-dump-info'
+                return_code = self.send_to_agent(command.format(os.path.join(self.arguments.folder,
+                                                                             folder_for_config_src)))
                 if exit_code.success_result(return_code):
                     return_code = self.send_to_agent('config update-db-cfg')
 
