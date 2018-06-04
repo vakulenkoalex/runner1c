@@ -6,13 +6,6 @@
 	<Events>
 		<Event name="OnOpen">ПриОткрытии</Event>
 	</Events>
-	<ChildItems>
-		<Button name="Сделать" id="1">
-			<Type>UsualButton</Type>
-			<CommandName>Form.Command.Сделать</CommandName>
-			<ExtendedTooltip name="СделатьРасширеннаяПодсказка" id="2"/>
-		</Button>
-	</ChildItems>
 	<Attributes>
 		<Attribute name="Объект" id="1">
 			<Type>
@@ -21,21 +14,4 @@
 			<MainAttribute>true</MainAttribute>
 		</Attribute>
 	</Attributes>
-	<Commands>
-		<Command name="Сделать" id="1">
-			<Title>
-				<v8:item>
-					<v8:lang>ru</v8:lang>
-					<v8:content>Сделать</v8:content>
-				</v8:item>
-			</Title>
-			<ToolTip>
-				<v8:item>
-					<v8:lang>ru</v8:lang>
-					<v8:content>Сделать</v8:content>
-				</v8:item>
-			</ToolTip>
-			<Action>Сделать</Action>
-		</Command>
-	</Commands>
 </Form>
