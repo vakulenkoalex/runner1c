@@ -1,6 +1,7 @@
 import os
 
 import runner1c
+import runner1c.common as common
 import runner1c.exit_code as exit_code
 
 
@@ -45,6 +46,15 @@ class AddExtensions(runner1c.command.Command):
             return_code = runner1c.exit_code.EXIT_CODE.error
         finally:
             self.close_agent()
+
+        if exit_code.success_result(return_code):
+            p_start = runner1c.command.EmptyParameters(self.arguments)
+            setattr(p_start, 'connection', self.arguments.connection)
+            setattr(p_start, 'epf', common.get_path_to_project(os.path.join('build',
+                                                                            'tools',
+                                                                            'epf',
+                                                                            'ChangeSafeModeForExtension.epf')))
+            return_code = runner1c.commands.start.Start(arguments=p_start).execute()
 
         return return_code
 
