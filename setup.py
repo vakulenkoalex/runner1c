@@ -13,7 +13,7 @@ setup(
     author='Vakulenko Aleksei',
     packages=find_packages(),
     description='утилита для запуска 1С',
-    python_requires='python>=3.5',
+    python_requires='>=3.5',
     include_package_data=True,
     platforms='win32',
     entry_points={
