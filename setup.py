@@ -1,16 +1,19 @@
+import re
+
 from setuptools import setup, find_packages
 
-import runner1c
+with open('runner1c/__init__.py', 'rt', encoding='utf8') as f:
+    version = re.search(r'__version__ = \'(.*?)\'', f.read()).group(1)
 
 setup(
     name='runner1c',
-    version=runner1c.__version__,
+    version=version,
     url='https://github.com/vakulenkoalex/runner1c/',
     license='BSD',
     author='Vakulenko Aleksei',
-    # author_email = 'vakulenko_alex',
     packages=find_packages(),
-    description='example',
+    description='утилита для запуска 1С',
+    python_requires='python>=3.6',
     include_package_data=True,
     platforms='win32',
     entry_points={
