@@ -21,14 +21,14 @@ def test_version_main(capsys, runner):
     assert runner(argument) == 0
 
     captured = capsys.readouterr()
-    assert captured.out == str(runner1c.__version__) + '\n'
+    assert captured.out == runner1c.__version__ + '\n'
 
 
 def test_version_cli():
     command = ["runner1c", "version"]
     out, err, exitcode = capture(command)
     assert exitcode == 0
-    assert out.decode() == str(runner1c.__version__) + '\r\n'
+    assert out.decode() == runner1c.__version__ + '\r\n'
 
 
 @pytest.mark.usefixtures("set_log_level")
@@ -38,4 +38,4 @@ def test_version_file(capsys, runner, repo_folder):
     assert runner(argument) == 0
 
     captured = capsys.readouterr()
-    assert captured.out == str(runner1c.__version__) + '\n'
+    assert captured.out == runner1c.__version__ + '\n'
