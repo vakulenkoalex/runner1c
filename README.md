@@ -1,4 +1,4 @@
-[![BCH compliance](https://bettercodehub.com/edge/badge/vakulenkoalex/runner1c?branch=master)](https://bettercodehub.com/)
+[![BCH compliance](https://bettercodehub.com/edge/badge/vakulenkoalex/runner1c?branch=master)](https://bettercodehub.com/) [![Build Status](http://sigma-pharma.ru:30080/job/runner1c/badge/icon)](http://sigma-pharma.ru:30080/job/runner1c)
 
 # runner-1c
 
