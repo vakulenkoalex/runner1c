@@ -40,8 +40,6 @@ def test_base_for_test(tmpdir, runner, base_dir):
                 '--create_epf']
     assert runner(argument) == 0
 
-    # база создалась
-    assert os.path.exists(base_dir)
     # обработка создалась
     assert os.path.exists(epf)
 
