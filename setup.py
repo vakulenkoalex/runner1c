@@ -24,6 +24,7 @@ setup(
     install_requires=[
         'paramiko>=2.4',
         'pytest>=3.4',
-        'pytest-cov>=2.5'
+        'pytest-cov>=2.5',
+        'pytest-dependency>=0.3.2'
     ]
 )
