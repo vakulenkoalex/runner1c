@@ -4,6 +4,7 @@ import tempfile
 
 import runner1c
 import runner1c.common as common
+import runner1c.exit_code
 
 
 class DumpConfigParser(runner1c.parser.Parser):
@@ -46,22 +47,23 @@ class DumpConfig(runner1c.command.Command):
 
         return_code = self.run()
 
-        folders_for_scan = [self.arguments.folder]
-        if getattr(self.arguments, 'update', False):
-            # noinspection PyUnboundLocalVariable
-            with open(self._changes, mode='r', encoding='utf-8') as file:
-                text = file.read()
-            file.close()
+        if return_code == runner1c.exit_code.EXIT_CODE.done:
+            folders_for_scan = [self.arguments.folder]
+            if getattr(self.arguments, 'update', False):
+                # noinspection PyUnboundLocalVariable
+                with open(self._changes, mode='r', encoding='utf-8') as file:
+                    text = file.read()
+                file.close()
 
-            forms = re.compile('.*\.Form.*\.Form', re.MULTILINE).findall(text)
-            if len(forms) > 0:
-                folders_for_scan = self._get_path_changed_forms(forms)
+                forms = re.compile('.*\.Form.*\.Form', re.MULTILINE).findall(text)
+                if len(forms) > 0:
+                    folders_for_scan = self._get_path_changed_forms(forms)
 
-            # noinspection PyUnboundLocalVariable
-            common.delete_file(self._changes)
+                # noinspection PyUnboundLocalVariable
+                common.delete_file(self._changes)
 
-        if len(folders_for_scan) > 0:
-            self.get_module_ordinary_form(folders_for_scan)
+            if len(folders_for_scan) > 0:
+                self.get_module_ordinary_form(folders_for_scan)
 
         return return_code
 
