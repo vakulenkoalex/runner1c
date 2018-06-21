@@ -44,9 +44,10 @@ class DumpConfig(runner1c.command.Command):
             self.debug('changes "%s"', self._changes)
 
     def execute(self):
+        if getattr(self.arguments, 'repair', False):
+            copy_files = self._copy__files_with_error_to_tmp()
+
         if not getattr(self.arguments, 'update', False):
-            if getattr(self.arguments, 'repair', False):
-                copy_files = self._copy__files_with_error_to_tmp()
             common.clear_folder(self.arguments.folder)
 
         return_code = self.run()
@@ -54,9 +55,16 @@ class DumpConfig(runner1c.command.Command):
         if return_code == runner1c.exit_code.EXIT_CODE.done:
             folders_for_scan = [self.arguments.folder]
             if getattr(self.arguments, 'update', False):
-                folders_for_scan = self._get_change_bin_forms()
-            else:
-                if getattr(self.arguments, 'repair', False):
+                text = self._read_changes()
+                folders_for_scan = self._get_change_bin_forms(text)
+
+            if getattr(self.arguments, 'repair', False):
+                repair_files = True
+                if getattr(self.arguments, 'update', False):
+                    # noinspection PyUnboundLocalVariable
+                    repair_files = text.find('FullDump') > 0
+
+                if repair_files:
                     self._delete_use_constant()
                     # noinspection PyUnboundLocalVariable
                     self._compare_file_with_error(copy_files)
@@ -66,18 +74,21 @@ class DumpConfig(runner1c.command.Command):
 
         return return_code
 
-    def _get_change_bin_forms(self):
+    def _get_change_bin_forms(self, text):
         folders_for_scan = []
+        forms = re.compile('.*\.Form.*\.Form', re.MULTILINE).findall(text)
+        if len(forms) > 0:
+            folders_for_scan = self._get_path_changed_forms(forms)
+        return folders_for_scan
+
+    def _read_changes(self):
         # noinspection PyUnboundLocalVariable
         with open(self._changes, mode='r', encoding='utf-8') as file:
             text = file.read()
         file.close()
-        forms = re.compile('.*\.Form.*\.Form', re.MULTILINE).findall(text)
-        if len(forms) > 0:
-            folders_for_scan = self._get_path_changed_forms(forms)
         # noinspection PyUnboundLocalVariable
         common.delete_file(self._changes)
-        return folders_for_scan
+        return text
 
     def _compare_file_with_error(self, copy_files):
         self.debug('compare_file_with_error')
