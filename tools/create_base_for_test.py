@@ -13,6 +13,9 @@ def _ask_directory_click(element, title):
     base_path = filedialog.askdirectory(initialdir=element.get(),
                                         title=title,
                                         mustexist=True)
+    if base_path == '':
+        return
+
     _delete_entry_value(element)
     _set_entry_value(element, base_path)
 
@@ -23,7 +26,7 @@ def _place_ask_directory(label_text, position):
     label.place(x=5, y=position)
     entry = tkinter.Entry(FORM, width=40)
     entry.place(x=5, y=20 + position)
-    button = tkinter.Button(FORM, text='...', command=lambda: _ask_directory_click(entry, text))
+    button = tkinter.Button(FORM, text='...', command=lambda: _ask_directory_click(entry, label_text))
     button.place(x=250, y=18 + position)
 
     return entry
