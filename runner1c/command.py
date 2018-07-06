@@ -432,7 +432,7 @@ class EmptyParameters:
     def copy_parameter(self, arguments, name):
         value = getattr(arguments, name, False)
         if value:
-            setattr(self, 'name', value)
+            setattr(self, name, value)
 
 
 class CreateBase(Command):
