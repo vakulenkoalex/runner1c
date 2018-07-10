@@ -106,7 +106,7 @@ class DumpConfig(runner1c.command.Command):
         p_diff_mxl = runner1c.command.EmptyParameters(self.arguments)
         setattr(p_diff_mxl, 'first', origin_file_name)
         setattr(p_diff_mxl, 'second', copy_file_name)
-        setattr(p_diff_mxl, 'result', result_file_name)
+        setattr(p_diff_mxl, 'equal_files', result_file_name)
         return_code_diff = runner1c.commands.diff_mxl.DiffMxl(arguments=p_diff_mxl).execute()
 
         if return_code_diff == runner1c.exit_code.EXIT_CODE.done:
