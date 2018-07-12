@@ -56,7 +56,8 @@ class DumpConfig(runner1c.command.Command):
             folders_for_scan = [self.arguments.folder]
             if getattr(self.arguments, 'update', False):
                 text = self._read_changes()
-                folders_for_scan = self._get_change_bin_forms(text)
+                if text.find('FullDump') == -1:
+                    folders_for_scan = self._get_change_bin_forms(text)
 
             if getattr(self.arguments, 'repair', False):
                 repair_files = True
