@@ -449,7 +449,11 @@ class StartAgent(Command):
     def __init__(self, **kwargs):
         kwargs['mode'] = Mode.DESIGNER
         super().__init__(**kwargs)
+
         self.add_argument('/AgentMode /AgentSSHHostKeyAuto /AgentBaseDir "{folder}"')
+        if getattr(self.arguments, 'port', False):
+            self.add_argument('/AgentPort {port}')
+
 
     @property
     def default_result(self):
