@@ -9,6 +9,7 @@ import copy
 import json
 import logging
 import os
+import socket
 import subprocess
 import tempfile
 import time
@@ -99,10 +100,13 @@ class Command(abc.ABC):
         if self._agent_started:
             return
 
+        port_agent = self._get_port_for_agent()
+
         # запуск конфигуратора в режиме агента
         p_agent = runner1c.command.EmptyParameters(self.arguments)
         setattr(p_agent, 'connection', self.arguments.connection)
         setattr(p_agent, 'folder', self.arguments.folder)
+        setattr(p_agent, 'port', port_agent)
         StartAgent(arguments=p_agent).execute()
         time.sleep(1)
 
@@ -115,7 +119,7 @@ class Command(abc.ABC):
         # noinspection PyAttributeOutsideInit
         self._client = paramiko.SSHClient()
         self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        self._client.connect(hostname='127.0.0.1', username='', password='', port=1543)
+        self._client.connect(hostname='127.0.0.1', username='', password='', port=port_agent)
 
         # noinspection PyAttributeOutsideInit
         self._channel = self._client.get_transport().open_session()
@@ -412,6 +416,28 @@ class Command(abc.ABC):
 
         if not self.arguments.external_log:
             common.delete_file(self.arguments.log)
+
+    def _get_port_for_agent(self):
+
+        port_agent = 1543
+        find_port = False
+
+        while port_agent < 1600:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(2)
+            result = sock.connect_ex(('127.0.0.1', port_agent))
+            if result == 0:
+                port_agent = port_agent + 1
+            else:
+                sock.close()
+                find_port = True
+                break
+
+
+        if not find_port:
+            raise Exception('Port for agent not found')
+
+        return port_agent
 
 
 class Mode(Enum):
