@@ -436,7 +436,6 @@ class Command(abc.ABC):
                 find_port = True
                 break
 
-
         if not find_port:
             raise Exception('Port for agent not found')
 
@@ -482,7 +481,6 @@ class StartAgent(Command):
         self.add_argument('/AgentMode /AgentSSHHostKeyAuto /AgentBaseDir "{folder}"')
         if getattr(self.arguments, 'port', False):
             self.add_argument('/AgentPort {port}')
-
 
     @property
     def default_result(self):
