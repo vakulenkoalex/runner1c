@@ -114,10 +114,19 @@ class Sync(runner1c.command.Command):
     def _get_source(self):
         exclude = ['.git', 'cf', 'Forms', 'Templates']
         source_map = {}
-        folder_for_walk = self.arguments.folder if self.arguments.include is None else self.arguments.include
+
+        if getattr(self.arguments, 'include', False):
+            folder_for_walk = self.arguments.include
+        else:
+            folder_for_walk = self.arguments.folder
+
+        exclude_full_path = None
+        if getattr(self.arguments, 'exclude', False):
+            exclude_full_path = self.arguments.exclude
+
         for root, dirs, files in os.walk(folder_for_walk, topdown=True):
             dirs[:] = [d for d in dirs if d not in exclude and
-                       (True if self.arguments.exclude is None else os.path.join(root, d) != self.arguments.exclude)]
+                       (True if exclude_full_path is None else os.path.join(root, d) != exclude_full_path)]
             for file in files:
 
                 if not file.endswith('.xml') and not file.endswith(self._feature_binary):
