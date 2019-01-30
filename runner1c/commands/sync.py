@@ -26,6 +26,8 @@ class SyncParser(runner1c.parser.Parser):
         self.add_argument_to_parser(connection_required=False)
         self._parser.add_argument('--create', action='store_const', const=True, help='создать бинарники из исходников')
         self._parser.add_argument('--folder', required=True, help='путь к папке с репозитарием')
+        self._parser.add_argument('--include', help='путь к папке, из которой нужно собрать бинарники')
+        self._parser.add_argument('--exclude', help='путь к папке, которую нужно пропустить')
 
 
 class Sync(runner1c.command.Command):
@@ -111,8 +113,10 @@ class Sync(runner1c.command.Command):
     def _get_source(self):
         exclude = ['.git', 'cf', 'Forms', 'Templates']
         source_map = {}
-        for root, dirs, files in os.walk(self.arguments.folder, topdown=True):
-            dirs[:] = [d for d in dirs if d not in exclude]
+        folder_for_walk = self.arguments.folder if self.arguments.include is None else self.arguments.include
+        for root, dirs, files in os.walk(folder_for_walk, topdown=True):
+            dirs[:] = [d for d in dirs if d not in exclude and
+                       (True if self.arguments.exclude is None else os.path.join(root, d) != self.arguments.exclude)]
             for file in files:
 
                 if not file.endswith('.xml') and not file.endswith(self._feature_binary):
