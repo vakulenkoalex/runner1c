@@ -53,6 +53,7 @@ async def create_epf(self):
     setattr(p_sync, 'connection', self.arguments.connection)
     setattr(p_sync, 'folder', self.arguments.folder)
     setattr(p_sync, 'create', True)
+    setattr(p_sync, 'exclude', os.path.join(p_sync.folder, 'spec', 'fixtures'))
     sync.Sync(arguments=p_sync, agent_channel=self.get_agent_channel()).execute()
 
 
@@ -77,16 +78,26 @@ class BaseForTest(runner1c.command.Command):
                     return_code = self.send_to_agent('config update-db-cfg')
 
                     if exit_code.success_result(return_code):
-                        loop = asyncio.ProactorEventLoop()
-                        asyncio.set_event_loop(loop)
 
-                        tasks = []
-                        if getattr(self.arguments, 'create_epf', False):
-                            tasks.append(create_epf(self))
-                        tasks.append(start_1c(self, loop))
+                        p_sync = runner1c.command.EmptyParameters(self.arguments)
+                        setattr(p_sync, 'connection', self.arguments.connection)
+                        setattr(p_sync, 'folder', self.arguments.folder)
+                        setattr(p_sync, 'create', True)
+                        setattr(p_sync, 'include', os.path.join(p_sync.folder, 'spec', 'fixtures'))
+                        return_code = sync.Sync(arguments=p_sync, agent_channel=self.get_agent_channel()).execute()
 
-                        loop.run_until_complete(asyncio.wait(tasks))
-                        loop.close()
+                        if exit_code.success_result(return_code):
+                            loop = asyncio.ProactorEventLoop()
+                            asyncio.set_event_loop(loop)
+    
+                            tasks = []
+                            if getattr(self.arguments, 'create_epf', False):
+                                tasks.append(create_epf(self))
+                            tasks.append(start_1c(self, loop))
+
+                            loop.run_until_complete(asyncio.wait(tasks))
+                            loop.close()
+
             except Exception as exception:
                 self.error(exception)
                 return_code = runner1c.exit_code.EXIT_CODE.error
