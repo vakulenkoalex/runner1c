@@ -60,7 +60,8 @@ class Sync(runner1c.command.Command):
                     else:
                         common.create_path(os.path.dirname(path_binary))
                         shutil.copy(path_source, path_binary)
-            except:
+            except Exception as exception:
+                self.error(exception)
                 result_code = runner1c.exit_code.EXIT_CODE.error
             finally:
                 self.close_agent()

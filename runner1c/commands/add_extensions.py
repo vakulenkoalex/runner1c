@@ -43,7 +43,8 @@ class AddExtensions(runner1c.command.Command):
                 return_code = self.send_to_agent(command.format(name))
                 if not exit_code.success_result(return_code):
                     break
-        except:
+        except Exception as exception:
+            self.error(exception)
             return_code = runner1c.exit_code.EXIT_CODE.error
         finally:
             self.close_agent()

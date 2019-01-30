@@ -495,7 +495,8 @@ class StartAgent(Command):
         # noinspection PyPep8,PyBroadException
         try:
             subprocess.Popen('start "no wait" ' + call_string, shell=True)
-        except:
+        except Exception as exception:
+            self.error(exception)
             return_code = runner1c.exit_code.EXIT_CODE.error
 
         return return_code

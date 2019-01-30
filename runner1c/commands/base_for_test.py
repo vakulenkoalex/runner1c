@@ -87,8 +87,8 @@ class BaseForTest(runner1c.command.Command):
 
                         loop.run_until_complete(asyncio.wait(tasks))
                         loop.close()
-
-            except:
+            except Exception as exception:
+                self.error(exception)
                 return_code = runner1c.exit_code.EXIT_CODE.error
             finally:
                 self.close_agent()
