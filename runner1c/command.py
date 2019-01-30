@@ -96,6 +96,9 @@ class Command(abc.ABC):
     def debug(self, msg, *args):
         self._logger.debug(msg, *args)
 
+    def error(self, msg, *args):
+        self._logger.error(msg, *args)
+
     def start_agent(self):
         if self._agent_started:
             return
