@@ -89,7 +89,7 @@ class BaseForTest(runner1c.command.Command):
                         if exit_code.success_result(return_code):
                             loop = asyncio.ProactorEventLoop()
                             asyncio.set_event_loop(loop)
-    
+
                             tasks = []
                             if getattr(self.arguments, 'create_epf', False):
                                 tasks.append(create_epf(self))
