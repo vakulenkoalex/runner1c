@@ -42,9 +42,10 @@ async def start_1c(self, loop):
 
     call_string = runner1c.commands.start.Start(arguments=p_start).get_string_for_call()
     program, parameters = call_string.split(' ENTERPRISE')
-    process = await asyncio.create_subprocess_exec(program.replace('"', ''),
-                                                   'ENTERPRISE ' + parameters.replace('"', ''),
-                                                   loop=loop)
+    cmd = program.replace('"', '')
+    stdin = 'ENTERPRISE ' + parameters.replace('"', '')
+    self.debug('create_subprocess_exec %s %s', cmd, stdin)
+    process = await asyncio.create_subprocess_exec(cmd, stdin, loop=loop)
     await process.wait()
 
 
