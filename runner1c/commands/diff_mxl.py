@@ -32,7 +32,11 @@ class DiffMxl(runner1c.command.Command):
 
         p_start = runner1c.command.EmptyParameters(self.arguments)
         setattr(p_start, 'thick', True)
-        setattr(p_start, 'epf', common.get_path_to_project(os.path.join('build', 'tools', 'epf', 'FileCompareMxl.epf')))
+        setattr(p_start, 'epf', common.get_path_to_project(os.path.join('build',
+                                                                        'runner1c',
+                                                                        'tools',
+                                                                        'epf',
+                                                                        'FileCompareMxl.epf')))
         setattr(p_start, 'options', options)
 
         return runner1c.commands.start.Start(arguments=p_start).execute()

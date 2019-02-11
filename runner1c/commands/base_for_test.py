@@ -34,7 +34,11 @@ async def start_1c(self, loop):
     p_start = runner1c.command.EmptyParameters(self.arguments)
     setattr(p_start, 'connection', self.arguments.connection)
     setattr(p_start, 'thick', self.arguments.thick)
-    setattr(p_start, 'epf', common.get_path_to_project(os.path.join('build', 'tools', 'epf', 'CloseAfterUpdate.epf')))
+    setattr(p_start, 'epf', common.get_path_to_project(os.path.join('build',
+                                                                    'runner1c',
+                                                                    'tools',
+                                                                    'epf',
+                                                                    'CloseAfterUpdate.epf')))
 
     path_to_fixtures = os.path.join(self.arguments.folder, 'build', 'spec', 'fixtures')
     if os.path.exists(path_to_fixtures):
