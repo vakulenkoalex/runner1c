@@ -104,5 +104,5 @@ ENV/
 /build/*
 !/build/README.md
 .pytest_cache/
-tests/repo/build/
+runner1c/tests/repo/build/
 ConfigDumpInfo.xml
