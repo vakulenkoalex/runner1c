@@ -52,8 +52,8 @@ class AddExtensions(runner1c.command.Command):
         if exit_code.success_result(return_code):
             p_start = runner1c.command.EmptyParameters(self.arguments)
             setattr(p_start, 'connection', self.arguments.connection)
-            setattr(p_start, 'epf', common.get_path_to_project(os.path.join('build',
-                                                                            'runner1c',
+            setattr(p_start, 'epf', common.get_path_to_project(os.path.join('runner1c',
+                                                                            'build',
                                                                             'tools',
                                                                             'epf',
                                                                             'ChangeSafeModeForExtension.epf')))

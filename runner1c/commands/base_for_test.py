@@ -34,8 +34,8 @@ async def start_1c(self, loop):
     p_start = runner1c.command.EmptyParameters(self.arguments)
     setattr(p_start, 'connection', self.arguments.connection)
     setattr(p_start, 'thick', self.arguments.thick)
-    setattr(p_start, 'epf', common.get_path_to_project(os.path.join('build',
-                                                                    'runner1c',
+    setattr(p_start, 'epf', common.get_path_to_project(os.path.join('runner1c',
+                                                                    'build',
                                                                     'tools',
                                                                     'epf',
                                                                     'CloseAfterUpdate.epf')))
