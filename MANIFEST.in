@@ -1,5 +1,6 @@
 include LICENSE
 include runner1c/build/README.md
+recursive-include runner1c/build *.epf
 recursive-include runner1c/tools *.bin
 recursive-include runner1c/tools *.bsl
 recursive-include runner1c/tools *.py
