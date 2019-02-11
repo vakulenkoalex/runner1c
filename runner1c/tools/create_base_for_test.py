@@ -47,7 +47,7 @@ FORM = tkinter.Tk()
 BASE = _place_ask_directory('Путь к базе', 0)
 PLATFORM = _place_ask_directory('Путь к платформе', 40)
 CREATE_EPF = place_checkbox('Создать epf', 0)
-CREATE_CFE = place_checkbox('Создать cfe', 90)
+#CREATE_CFE = place_checkbox('Создать cfe', 90)
 REPO = tkinter.StringVar()
 PATH_GIT = os.path.split(os.path.split(os.getcwd())[0])[0]
 
@@ -118,12 +118,10 @@ def _create_base_click():
     except:
         pass
 
-    if runner1c.core.main(argument) == 0:
-        _save_parameters(REPO.get(), BASE.get(), PLATFORM.get())
-        _save_git_path_for_base(BASE.get(), repo_path)
-        if CREATE_CFE.get():
-            pass
-        FORM.destroy()
+    _save_parameters(REPO.get(), BASE.get(), PLATFORM.get())
+    #_save_git_path_for_base(BASE.get(), repo_path)
+
+    runner1c.core.main(argument)
 
 
 def _create_form():
