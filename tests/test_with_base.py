@@ -28,7 +28,7 @@ def count_lines_in_file(file):
 def test_base_for_test(tmpdir, runner, base_dir):
     test_dir = os.path.dirname(__file__)
     repo_folder = os.path.join(test_dir, 'repo')
-    epf = os.path.join(repo_folder, 'build', 'epf', 'ПроверитьКонфигурацию.epf')
+    epf = os.path.join(repo_folder, 'build', 'epf', 'CheckConfig.epf')
     result = str(tmpdir.join("result.txt"))
 
     argument = ['--debug',
@@ -71,7 +71,7 @@ def test_sync(tmpdir, runner, repo_folder):
                 new_repo]
     assert runner(argument) == 0
 
-    assert os.path.exists(os.path.join(repo_folder, 'epf', 'ПроверитьКонфигурацию.xml'))
+    assert os.path.exists(os.path.join(repo_folder, 'epf', 'CheckConfig.xml'))
     assert os.path.exists(os.path.join(repo_folder, 'feature', 'Example.data'))
 
 
@@ -96,7 +96,7 @@ def test_platform_check_with_error(tmpdir, runner, base_dir):
 def test_platform_check_skip_modality(tmpdir, runner, base_dir):
     skip_file = str(tmpdir.join("skip.txt"))
     with open(skip_file, mode='w', encoding='utf-8') as file:
-        file.write('Справочник.Справочник1.Форма.ФормаЭлемента.Форма')
+        file.write('Справочник.Catalog1.Форма.Form.Форма')
     file.close()
 
     log = str(tmpdir.join("log.html"))
@@ -119,7 +119,7 @@ def test_platform_check_skip_modality(tmpdir, runner, base_dir):
 def test_platform_check_skip_object(tmpdir, runner, base_dir):
     skip_file = str(tmpdir.join("skip.txt"))
     with open(skip_file, mode='w', encoding='utf-8') as file:
-        file.write('Справочник.Справочник1')
+        file.write('Справочник.Catalog1')
     file.close()
 
     log = str(tmpdir.join("log.html"))
@@ -142,7 +142,7 @@ def test_platform_check_skip_object(tmpdir, runner, base_dir):
 def test_platform_check_skip_error(tmpdir, runner, base_dir):
     skip_file = str(tmpdir.join("skip.txt"))
     with open(skip_file, mode='w', encoding='utf-8') as file:
-        file.write('Справочник.Справочник1.Форма.ФормаЭлемента.Форма '
+        file.write('Справочник.Catalog1.Форма.Form.Форма '
                    'Использование модального вызова: "Предупреждение"\n')
     file.close()
 
@@ -176,9 +176,9 @@ def test_platform_dump_config(tmpdir, runner, base_dir):
 
     assert os.path.exists(os.path.join(folder,
                                        'DataProcessors',
-                                       'Обработка1',
+                                       'DataProcessor1',
                                        'Forms',
-                                       'Форма',
+                                       'Form',
                                        'Ext',
                                        'Form',
                                        'Module.bsl'))
@@ -190,7 +190,7 @@ def test_platform_dump_config(tmpdir, runner, base_dir):
     tree = ElementTree.parse(version_file)
     root = tree.getroot()
     for element in root.iter():
-        if element.attrib.get('name') == 'Language.Русский':
+        if element.attrib.get('name') == 'Language.Russian':
             element.attrib['configVersion'] = '5f1e3d878d463f46a15629df9638d63900000000'
     tree.write(version_file, encoding='utf-8')
 
@@ -211,4 +211,4 @@ def test_platform_dump_config(tmpdir, runner, base_dir):
         count_file = count_file + len(files)
     assert count_file == 2
 
-    assert os.path.exists(os.path.join(folder_update, 'Languages', 'Русский.xml'))
+    assert os.path.exists(os.path.join(folder_update, 'Languages', 'Russian.xml'))

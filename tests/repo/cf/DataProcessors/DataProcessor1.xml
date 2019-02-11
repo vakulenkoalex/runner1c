@@ -1,30 +1,34 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <MetaDataObject xmlns="http://v8.1c.ru/8.3/MDClasses" xmlns:app="http://v8.1c.ru/8.2/managed-application/core" xmlns:cfg="http://v8.1c.ru/8.1/data/enterprise/current-config" xmlns:cmi="http://v8.1c.ru/8.2/managed-application/cmi" xmlns:ent="http://v8.1c.ru/8.1/data/enterprise" xmlns:lf="http://v8.1c.ru/8.2/managed-application/logform" xmlns:style="http://v8.1c.ru/8.1/data/ui/style" xmlns:sys="http://v8.1c.ru/8.1/data/ui/fonts/system" xmlns:v8="http://v8.1c.ru/8.1/data/core" xmlns:v8ui="http://v8.1c.ru/8.1/data/ui" xmlns:web="http://v8.1c.ru/8.1/data/ui/colors/web" xmlns:win="http://v8.1c.ru/8.1/data/ui/colors/windows" xmlns:xen="http://v8.1c.ru/8.3/xcf/enums" xmlns:xpr="http://v8.1c.ru/8.3/xcf/predef" xmlns:xr="http://v8.1c.ru/8.3/xcf/readable" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.6">
-	<ExternalDataProcessor uuid="19f5e795-9bf9-4f7e-963c-58759ba96615">
+	<DataProcessor uuid="f04aa6ec-77b4-463b-8939-4ddd571e4128">
 		<InternalInfo>
-			<xr:ContainedObject>
-				<xr:ClassId>c3831ec8-d8d5-4f93-8a22-f9bfae07327f</xr:ClassId>
-				<xr:ObjectId>d485aa2c-036c-46d3-9069-ec5d1b8c6b03</xr:ObjectId>
-			</xr:ContainedObject>
-			<xr:GeneratedType name="ExternalDataProcessorObject.FileCompareMxl" category="Object">
-				<xr:TypeId>d7b1569a-5573-4f51-8e84-a44ec37e5bbd</xr:TypeId>
-				<xr:ValueId>2debe974-943b-4172-a6e9-6d3f0112461d</xr:ValueId>
+			<xr:GeneratedType name="DataProcessorObject.DataProcessor1" category="Object">
+				<xr:TypeId>6b0abaf3-84c1-4b82-a67d-9540244c19ac</xr:TypeId>
+				<xr:ValueId>bf42dc9a-4111-480a-8c2c-759f2439df6b</xr:ValueId>
+			</xr:GeneratedType>
+			<xr:GeneratedType name="DataProcessorManager.DataProcessor1" category="Manager">
+				<xr:TypeId>c56ab126-2a63-4706-bded-6f46d78479b6</xr:TypeId>
+				<xr:ValueId>c2ba3859-be5a-479b-93ab-76b2791fd75a</xr:ValueId>
 			</xr:GeneratedType>
 		</InternalInfo>
 		<Properties>
-			<Name>FileCompareMxl</Name>
+			<Name>DataProcessor1</Name>
 			<Synonym>
 				<v8:item>
 					<v8:lang>ru</v8:lang>
-					<v8:content>File compare mxl</v8:content>
+					<v8:content>Data processor1</v8:content>
 				</v8:item>
 			</Synonym>
 			<Comment/>
-			<DefaultForm>ExternalDataProcessor.FileCompareMxl.Form.Form</DefaultForm>
+			<UseStandardCommands>true</UseStandardCommands>
+			<DefaultForm>DataProcessor.DataProcessor1.Form.Form</DefaultForm>
 			<AuxiliaryForm/>
+			<IncludeHelpInContents>false</IncludeHelpInContents>
+			<ExtendedPresentation/>
+			<Explanation/>
 		</Properties>
 		<ChildObjects>
 			<Form>Form</Form>
 		</ChildObjects>
-	</ExternalDataProcessor>
+	</DataProcessor>
 </MetaDataObject>
