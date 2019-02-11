@@ -1,0 +1,5 @@
+include LICENSE
+recursive-include runner1c/tools *.bin
+recursive-include runner1c/tools *.bsl
+recursive-include runner1c/tools *.py
+recursive-include runner1c/tools *.xml
