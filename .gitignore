@@ -100,9 +100,11 @@ ENV/
 .mypy_cache/
 .idea/
 
+# pytest
+.pytest_cache/
+
 # 1c
 runner1c/build/*
 !runner1c/build/README.md
-.pytest_cache/
 runner1c/tests/repo/build/
 ConfigDumpInfo.xml
