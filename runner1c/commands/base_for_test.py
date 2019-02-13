@@ -2,6 +2,7 @@ import asyncio
 import os
 
 import runner1c
+import runner1c.commands.add_extensions as add_extensions
 import runner1c.commands.load_config
 import runner1c.commands.start
 import runner1c.commands.sync as sync
@@ -28,9 +29,11 @@ class BaseForTestParser(runner1c.parser.Parser):
         self._parser.add_argument('--folder', required=True, help='путь к папке с репозитарием')
         self._parser.add_argument('--create_epf', action='store_const', const=True, help='создать внешние '
                                                                                          'обработки репозитария')
+        self._parser.add_argument('--create_cfe', action='store_const', const=True, help='загрузить расширения '
+                                                                                         'репозитария')
 
 
-async def start_1c(self, loop):
+async def start_enterprice(self, loop):
     p_start = runner1c.command.EmptyParameters(self.arguments)
     setattr(p_start, 'connection', self.arguments.connection)
     setattr(p_start, 'thick', self.arguments.thick)
@@ -53,13 +56,20 @@ async def start_1c(self, loop):
     await process.wait()
 
 
-async def create_epf(self):
-    p_sync = runner1c.command.EmptyParameters(self.arguments)
-    setattr(p_sync, 'connection', self.arguments.connection)
-    setattr(p_sync, 'folder', self.arguments.folder)
-    setattr(p_sync, 'create', True)
-    setattr(p_sync, 'exclude', os.path.join(p_sync.folder, 'spec', 'fixtures'))
-    sync.Sync(arguments=p_sync, agent_channel=self.get_agent_channel()).execute()
+async def start_designer(self):
+    if getattr(self.arguments, 'create_epf', False):
+        p_sync = runner1c.command.EmptyParameters(self.arguments)
+        setattr(p_sync, 'connection', self.arguments.connection)
+        setattr(p_sync, 'folder', self.arguments.folder)
+        setattr(p_sync, 'create', True)
+        setattr(p_sync, 'exclude', os.path.join(p_sync.folder, 'spec', 'fixtures'))
+        sync.Sync(arguments=p_sync, agent_channel=self.get_agent_channel()).execute()
+
+    if getattr(self.arguments, 'create_cfe', False):
+        p_extensions = runner1c.command.EmptyParameters(self.arguments)
+        setattr(p_extensions, 'connection', self.arguments.connection)
+        setattr(p_extensions, 'folder', os.path.join(self.arguments.folder, 'lib', 'ext'))
+        add_extensions.AddExtensions(arguments=p_extensions, agent_channel=self.get_agent_channel()).execute()
 
 
 class BaseForTest(runner1c.command.Command):
@@ -84,21 +94,23 @@ class BaseForTest(runner1c.command.Command):
 
                     if exit_code.success_result(return_code):
 
-                        p_sync = runner1c.command.EmptyParameters(self.arguments)
-                        setattr(p_sync, 'connection', self.arguments.connection)
-                        setattr(p_sync, 'folder', self.arguments.folder)
-                        setattr(p_sync, 'create', True)
-                        setattr(p_sync, 'include', os.path.join(p_sync.folder, 'spec', 'fixtures'))
-                        return_code = sync.Sync(arguments=p_sync, agent_channel=self.get_agent_channel()).execute()
+                        if getattr(self.arguments, 'create_epf', False):
+                            p_sync = runner1c.command.EmptyParameters(self.arguments)
+                            setattr(p_sync, 'connection', self.arguments.connection)
+                            setattr(p_sync, 'folder', self.arguments.folder)
+                            setattr(p_sync, 'create', True)
+                            setattr(p_sync, 'include', os.path.join(p_sync.folder, 'spec', 'fixtures'))
+                            return_code = sync.Sync(arguments=p_sync, agent_channel=self.get_agent_channel()).execute()
 
                         if exit_code.success_result(return_code):
                             loop = asyncio.ProactorEventLoop()
                             asyncio.set_event_loop(loop)
 
                             tasks = []
-                            if getattr(self.arguments, 'create_epf', False):
-                                tasks.append(create_epf(self))
-                            tasks.append(start_1c(self, loop))
+                            if getattr(self.arguments, 'create_epf', False) \
+                                    or getattr(self.arguments, 'create_cfe', False):
+                                tasks.append(start_designer(self))
+                            tasks.append(start_enterprice(self, loop))
 
                             loop.run_until_complete(asyncio.wait(tasks))
                             loop.close()
