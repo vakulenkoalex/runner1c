@@ -75,9 +75,8 @@ def _radiobutton_change(repo_name):
 
 
 def _place_repo(position, key):
-    repo_name = CONFIG.get(key, 'name')
     rbutton = tkinter.Radiobutton(FORM,
-                                  text=repo_name,
+                                  text=key,
                                   value=key,
                                   variable=REPO,
                                   command=lambda: _radiobutton_change(repo_name))
@@ -85,12 +84,12 @@ def _place_repo(position, key):
 
 
 def _save_parameters(repo_path, base_path, platform_path, thick_client):
+    CONFIG.has_option()
     repo_name = os.path.split(repo_path)[1]
 
     if not CONFIG.has_section(repo_name):
         CONFIG.add_section(repo_name)
 
-    CONFIG.set(repo_name, 'name', repo_name)
     CONFIG.set(repo_name, 'repo', repo_path)
     CONFIG.set(repo_name, 'base', base_path)
     CONFIG.set(repo_name, 'platform', platform_path)
