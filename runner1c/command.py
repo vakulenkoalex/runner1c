@@ -391,15 +391,15 @@ class Command(abc.ABC):
             setattr(self.arguments, 'external_result', False)
 
     def _set_connection_string(self):
-        if self.add_key_for_connection:
+        if isinstance(self, CreateBase):
+            setattr(self.arguments, 'connection_string', '"{}"'.format(self.arguments.connection))
+        else:
             if self.arguments.connection.endswith('v8i'):
                 type_connection = 'RunShortcut'
             else:
                 type_connection = 'IBConnectionString'
             setattr(self.arguments, 'connection_string',
                     '/{} "{}"'.format(type_connection, self.arguments.connection))
-        else:
-            setattr(self.arguments, 'connection_string', '"{}"'.format(self.arguments.connection))
 
     def _set_path_1c(self):
         if getattr(self.arguments, 'path', False):
@@ -467,10 +467,6 @@ class CreateBase(Command):
     def __init__(self, **kwargs):
         kwargs['mode'] = Mode.CREATE
         super().__init__(**kwargs)
-
-    @property
-    def add_key_for_connection(self):
-        return False
 
 
 class StartAgent(Command):
