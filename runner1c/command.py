@@ -23,7 +23,7 @@ import runner1c.exit_code
 
 def create_base_if_necessary(func):
     def wrapper(self):
-        if getattr(self.arguments, 'connection', False):
+        if not self.need_connection or getattr(self.arguments, 'connection', False):
             return func(self)
         else:
             temp_folder = tempfile.mkdtemp()
@@ -78,7 +78,7 @@ class Command(abc.ABC):
         return runner1c.exit_code.EXIT_CODE.error
 
     @property
-    def add_key_for_connection(self):
+    def need_connection(self):
         return True
 
     def execute(self):

@@ -27,3 +27,7 @@ class RegServer(runner1c.command.Command):
     @property
     def default_result(self):
         return runner1c.exit_code.EXIT_CODE.done
+
+    @property
+    def need_connection(self):
+        return False
