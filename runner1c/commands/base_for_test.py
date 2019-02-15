@@ -1,5 +1,6 @@
 import asyncio
 import os
+import tempfile
 
 import runner1c
 import runner1c.commands.add_extensions as add_extensions
@@ -49,11 +50,20 @@ async def start_enterprice(self, loop):
 
     call_string = runner1c.commands.start.Start(arguments=p_start).get_string_for_call()
     program, parameters = call_string.split(' ENTERPRISE')
+
+    file_parameters = tempfile.mktemp('.txt')
+    with open(file_parameters, mode='w', encoding='utf8') as file_parameters_stream:
+        file_parameters_stream.write('ENTERPRISE ' + parameters)
+    file_parameters_stream.close()
+
     cmd = program.replace('"', '')
-    stdin = 'ENTERPRISE ' + parameters.replace('"', '')
+    stdin = '/@ ' + file_parameters
     self.debug('create_subprocess_exec %s %s', cmd, stdin)
     process = await asyncio.create_subprocess_exec(cmd, stdin, loop=loop)
+
     await process.wait()
+
+    common.delete_file(file_parameters)
 
 
 async def start_designer(self):
