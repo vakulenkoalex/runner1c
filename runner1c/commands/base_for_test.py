@@ -67,19 +67,12 @@ async def start_enterprice(self, loop):
 
 
 async def start_designer(self):
-    if getattr(self.arguments, 'create_epf', False):
-        p_sync = runner1c.command.EmptyParameters(self.arguments)
-        setattr(p_sync, 'connection', self.arguments.connection)
-        setattr(p_sync, 'folder', self.arguments.folder)
-        setattr(p_sync, 'create', True)
-        setattr(p_sync, 'exclude', os.path.join(p_sync.folder, 'spec', 'fixtures'))
-        sync.Sync(arguments=p_sync, agent_channel=self.get_agent_channel()).execute()
-
-    if getattr(self.arguments, 'create_cfe', False):
-        p_extensions = runner1c.command.EmptyParameters(self.arguments)
-        setattr(p_extensions, 'connection', self.arguments.connection)
-        setattr(p_extensions, 'folder', os.path.join(self.arguments.folder, 'lib', 'ext'))
-        add_extensions.AddExtensions(arguments=p_extensions, agent_channel=self.get_agent_channel()).execute()
+    p_sync = runner1c.command.EmptyParameters(self.arguments)
+    setattr(p_sync, 'connection', self.arguments.connection)
+    setattr(p_sync, 'folder', self.arguments.folder)
+    setattr(p_sync, 'create', True)
+    setattr(p_sync, 'exclude', os.path.join(p_sync.folder, 'spec', 'fixtures'))
+    sync.Sync(arguments=p_sync, agent_channel=self.get_agent_channel()).execute()
 
 
 class BaseForTest(runner1c.command.Command):
@@ -104,6 +97,13 @@ class BaseForTest(runner1c.command.Command):
 
                     if exit_code.success_result(return_code):
 
+                        if getattr(self.arguments, 'create_cfe', False):
+                            p_extensions = runner1c.command.EmptyParameters(self.arguments)
+                            setattr(p_extensions, 'connection', self.arguments.connection)
+                            setattr(p_extensions, 'folder', os.path.join(self.arguments.folder, 'lib', 'ext'))
+                            add_extensions.AddExtensions(arguments=p_extensions,
+                                                         agent_channel=self.get_agent_channel()).execute()
+
                         if getattr(self.arguments, 'create_epf', False):
                             p_sync = runner1c.command.EmptyParameters(self.arguments)
                             setattr(p_sync, 'connection', self.arguments.connection)
@@ -117,8 +117,7 @@ class BaseForTest(runner1c.command.Command):
                             asyncio.set_event_loop(loop)
 
                             tasks = []
-                            if getattr(self.arguments, 'create_epf', False) \
-                                    or getattr(self.arguments, 'create_cfe', False):
+                            if getattr(self.arguments, 'create_epf', False):
                                 tasks.append(start_designer(self))
                             tasks.append(start_enterprice(self, loop))
 
