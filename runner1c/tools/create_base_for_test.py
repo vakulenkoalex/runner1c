@@ -79,12 +79,11 @@ def _place_repo(position, key):
                                   text=key,
                                   value=key,
                                   variable=REPO,
-                                  command=lambda: _radiobutton_change(repo_name))
+                                  command=lambda: _radiobutton_change(key))
     rbutton.place(x=280, y=20 * position)
 
 
 def _save_parameters(repo_path, base_path, platform_path, thick_client):
-    CONFIG.has_option()
     repo_name = os.path.split(repo_path)[1]
 
     if not CONFIG.has_section(repo_name):
