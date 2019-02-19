@@ -23,12 +23,17 @@ class AddExtensionsParser(runner1c.parser.Parser):
         self.add_argument_to_parser()
         self._parser.add_argument('--folder', required=True, help='каталог, содержащий исходники расширения '
                                                                   'конфигурации')
+        self._parser.add_argument('--name', help='имена расширений через запятую')
 
 
 class AddExtensions(runner1c.command.Command):
     def execute(self):
         return_code = runner1c.exit_code.EXIT_CODE.error
-        extensions_name = self._get_extensions_name()
+
+        if getattr(self.arguments, 'name', False):
+            extensions_name = self.arguments.name.split(',')
+        else:
+            extensions_name = self._get_extensions_name()
 
         self.start_agent()
 
