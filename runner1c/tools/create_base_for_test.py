@@ -4,14 +4,19 @@ import tkinter
 import tkinter.filedialog as filedialog
 import tkinter.messagebox as messagebox
 from configparser import ConfigParser
+import re
 
 import runner1c
 
 
-def _ask_directory_click(element, title):
-    base_path = filedialog.askdirectory(initialdir=element.get(),
-                                        title=title,
-                                        mustexist=True)
+def _ask_file_dir(element, title, open_file):
+    if open_file:
+        base_path = filedialog.askopenfilenames(initialdir=element.get(),
+                                                title=title)
+    else:
+        base_path = filedialog.askdirectory(initialdir=element.get(),
+                                            title=title,
+                                            mustexist=True)
     if base_path == '':
         return
 
@@ -19,13 +24,13 @@ def _ask_directory_click(element, title):
     _set_entry_value(element, base_path)
 
 
-def _place_ask_directory(label_text, position):
+def _place_ask_directory(label_text, position, open_file=False):
     text = label_text + ':'
     label = tkinter.Label(FORM, text=text)
     label.place(x=5, y=position)
     entry = tkinter.Entry(FORM, width=40)
     entry.place(x=5, y=20 + position)
-    button = tkinter.Button(FORM, text='...', command=lambda: _ask_directory_click(entry, label_text))
+    button = tkinter.Button(FORM, text='...', command=lambda: _ask_file_dir(entry, label_text, open_file))
     button.place(x=250, y=18 + position)
 
     return entry
@@ -46,9 +51,10 @@ FORM = tkinter.Tk()
 BASE = _place_ask_directory('Путь к базе', 0)
 PLATFORM = _place_ask_directory('Путь к платформе', 40)
 REPO = _place_ask_directory('Путь к исходникам', 80)
-THICK_CLIENT = place_checkbox('Толстый клиент', 90, 130)
-CREATE_EPF = place_checkbox('Создать epf', 210, 130)
-CREATE_CFE = place_checkbox('Создать cfe', 300, 130)
+CFE_NAME = _place_ask_directory('Путь к feature', 120, True)
+THICK_CLIENT = place_checkbox('Толстый клиент', 90, 170)
+CREATE_EPF = place_checkbox('Создать epf', 210, 170)
+CREATE_CFE = place_checkbox('Создать cfe', 300, 170)
 
 
 def _set_entry_value(element, text):
@@ -79,12 +85,11 @@ def _place_repo(position, key):
                                   text=key,
                                   value=key,
                                   variable=REPO,
-                                  command=lambda: _radiobutton_change(repo_name))
+                                  command=lambda: _radiobutton_change(key))
     rbutton.place(x=280, y=20 * position)
 
 
 def _save_parameters(repo_path, base_path, platform_path, thick_client):
-    CONFIG.has_option()
     repo_name = os.path.split(repo_path)[1]
 
     if not CONFIG.has_section(repo_name):
@@ -106,6 +111,19 @@ def _save_git_path_for_base(base_path, repo_path):
     txt_stream.close()
 
 
+def _get_extension_name_from_feature(feature_path):
+    ignore_tags = ['tree']
+    array = []
+    with open(feature_path, mode='r', encoding='utf-8') as file:
+        for name in re.compile('@.+', re.MULTILINE).findall(file.read()):
+            ext_name = name.replace('@', '').replace('Расширение', '')
+            if ext_name in ignore_tags:
+                continue
+            array.append(ext_name)
+    file.close()
+    return ','.join(array)
+
+
 def _create_base_click():
     if not BASE.get():
         messagebox.showerror("Ошибка", 'Не указан путь к базе')
@@ -123,25 +141,34 @@ def _create_base_click():
         shutil.rmtree(BASE.get(), True)
     os.makedirs(BASE.get())
 
-    argument = ['--debug', 'base_for_test', '--silent', '--path', PLATFORM.get(), '--connection', 'File=' + BASE.get(),
-                '--folder', REPO.get()]
+    arguments = ['--debug', 'base_for_test', '--silent', '--path', PLATFORM.get(), '--connection', 'File=' + BASE.get(),
+                 '--folder', REPO.get()]
     if CREATE_EPF.get():
-        argument.append('--create_epf')
-    if CREATE_CFE.get():
-        argument.append('--create_cfe')
+        arguments.append('--create_epf')
     if THICK_CLIENT.get():
-        argument.append('--thick')
+        arguments.append('--thick')
+    if CREATE_CFE.get() and not CFE_NAME.get():
+        arguments.append('--create_cfe')
 
     _save_parameters(REPO.get(), BASE.get(), PLATFORM.get(), THICK_CLIENT.get())
     _save_git_path_for_base(BASE.get(), REPO.get())
 
-    if runner1c.core.main(argument) == 0:
-        FORM.destroy()
+    if runner1c.core.main(arguments) == 0:
+        destroy_form = True
+        if CREATE_CFE.get() and CFE_NAME.get():
+            arguments = ['--debug', 'add_extensions', '--silent', '--path', PLATFORM.get(), '--connection',
+                         'File=' + BASE.get(), '--folder', os.path.join(REPO.get(), 'lib', 'ext'), '--name',
+                         _get_extension_name_from_feature(CFE_NAME.get())]
+            if runner1c.core.main(arguments) != 0:
+                destroy_form = False
+
+        if destroy_form:
+            FORM.destroy()
 
 
 def _create_form():
     FORM.title('Создание базы для тестов')
-    FORM.geometry('430x160')
+    FORM.geometry('430x200')
 
     i = 0
     for key in CONFIG.sections():
@@ -151,7 +178,7 @@ def _create_form():
     create_button = tkinter.Button(FORM,
                                    text='Создать базу',
                                    command=lambda: _create_base_click())
-    create_button.place(x=5, y=130)
+    create_button.place(x=5, y=170)
 
     FORM.mainloop()
 
