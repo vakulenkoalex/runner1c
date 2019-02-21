@@ -28,6 +28,7 @@ class SyncParser(runner1c.parser.Parser):
         self._parser.add_argument('--folder', required=True, help='путь к папке с репозитарием')
         self._parser.add_argument('--include', help='путь к папке, из которой нужно собрать бинарники')
         self._parser.add_argument('--exclude', help='путь к папке, которую нужно пропустить')
+        self._parser.add_argument('--hash_file', help='файл с хэшем бинарников для проверки изменений')
 
 
 class Sync(runner1c.command.Command):
@@ -103,8 +104,13 @@ class Sync(runner1c.command.Command):
 
     @property
     def _hash_file_name(self):
-        file_name = 'hash.txt'
-        return os.path.join(self.arguments.folder, self._binary_folder, file_name)
+        if getattr(self.arguments, 'hash_file', False):
+            result = self.arguments.hash_file
+        else:
+            file_name = 'hash.txt'
+            result = os.path.join(self.arguments.folder, self._binary_folder, file_name)
+
+        return result
 
     def _save_file_hash(self):
         with open(self._hash_file_name, mode='w', encoding='utf-8') as file_stream:
