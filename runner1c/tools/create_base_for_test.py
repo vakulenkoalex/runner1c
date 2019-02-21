@@ -153,7 +153,7 @@ def _create_base_click():
         destroy_form = True
         if CREATE_CFE.get() and CFE_NAME.get():
             arguments = ['--debug', 'add_extensions', '--silent', '--path', PLATFORM.get(), '--connection',
-                         'File=' + BASE.get(), '--folder', os.path.join(REPO.get(), 'lib', 'ext'), '--name',
+                         'File=' + BASE.get(), '--folder', os.path.join(REPO.get(), 'spec', 'ext'), '--name',
                          _get_extension_name_from_feature(CFE_NAME.get())]
             if runner1c.core.main(arguments) != 0:
                 destroy_form = False
