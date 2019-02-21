@@ -112,14 +112,10 @@ def _save_git_path_for_base(base_path, repo_path):
 
 
 def _get_extension_name_from_feature(feature_path):
-    ignore_tags = ['tree']
     array = []
     with open(feature_path, mode='r', encoding='utf-8') as file:
-        for name in re.compile('@.+', re.MULTILINE).findall(file.read()):
-            ext_name = name.replace('@', '').replace('Расширение', '')
-            if ext_name in ignore_tags:
-                continue
-            array.append(ext_name)
+        for name in re.compile('@Расширение.+', re.MULTILINE).findall(file.read()):
+            array.append(name.replace('@', '').replace('Расширение', ''))
     file.close()
     return ','.join(array)
 
