@@ -35,6 +35,9 @@ class AddExtensions(runner1c.command.Command):
         else:
             extensions_name = self._get_extensions_name()
 
+        if len(extensions_name) == 0:
+            return runner1c.exit_code.EXIT_CODE.done
+
         self.start_agent()
 
         # noinspection PyPep8,PyBroadException
@@ -67,4 +70,10 @@ class AddExtensions(runner1c.command.Command):
         return return_code
 
     def _get_extensions_name(self):
-        return os.listdir(self.arguments.folder)
+        if os.path.exists(self.arguments.folder):
+            result = os.listdir(self.arguments.folder)
+        else:
+            self.debug('не найден каталог расширений')
+            result = []
+
+        return result
