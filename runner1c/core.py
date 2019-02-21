@@ -57,15 +57,17 @@ def main(arg=None):
 
     if arg is None:
         list_argument = sys.argv[1:]
+        logger_name = 'Core'
     else:
         list_argument = arg
+        logger_name = 'File'
 
     arguments = parser.parse_args(list_argument)
 
     if arguments.debug:
         logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(name)19s - %(message)s')
 
-    logger = logging.getLogger('Core')
+    logger = logging.getLogger(logger_name)
     logger.debug('start')
 
     handler = commands[arguments.command].create_handler(arguments=arguments)
