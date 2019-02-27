@@ -11,17 +11,17 @@ import runner1c
 
 def _ask_file_dir(element, title, open_file):
     if open_file:
-        base_path = filedialog.askopenfilenames(initialdir=element.get(),
+        path = filedialog.askopenfilenames(initialdir=element.get(),
                                                 title=title)
     else:
-        base_path = filedialog.askdirectory(initialdir=element.get(),
+        path = filedialog.askdirectory(initialdir=element.get(),
                                             title=title,
                                             mustexist=True)
-    if base_path == '':
+    if path == '':
         return
 
     _delete_entry_value(element)
-    _set_entry_value(element, base_path)
+    _set_entry_value(element, path)
 
 
 def _place_ask_directory(label_text, position, open_file=False):
