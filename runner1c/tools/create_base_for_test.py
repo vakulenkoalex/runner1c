@@ -133,12 +133,15 @@ def _create_base_click():
         messagebox.showerror("Ошибка", 'Не указан путь к исходникам')
         return
 
+    repo_path = REPO.get()
+    repo_path_win = repo_path.replace('/', '\\')
+
     if os.path.exists(BASE.get()):
         shutil.rmtree(BASE.get(), True)
     os.makedirs(BASE.get())
 
     arguments = ['--debug', 'base_for_test', '--silent', '--path', PLATFORM.get(), '--connection', 'File=' + BASE.get(),
-                 '--folder', REPO.get()]
+                 '--folder', repo_path_win]
     if CREATE_EPF.get():
         arguments.append('--create_epf')
     if THICK_CLIENT.get():
@@ -146,14 +149,14 @@ def _create_base_click():
     if CREATE_CFE.get() and not CFE_NAME.get():
         arguments.append('--create_cfe')
 
-    _save_parameters(REPO.get(), BASE.get(), PLATFORM.get(), THICK_CLIENT.get())
-    _save_git_path_for_base(BASE.get(), REPO.get())
+    _save_parameters(repo_path, BASE.get(), PLATFORM.get(), THICK_CLIENT.get())
+    _save_git_path_for_base(BASE.get(), repo_path_win)
 
     if runner1c.core.main(arguments) == 0:
         destroy_form = True
         if CREATE_CFE.get() and CFE_NAME.get():
             arguments = ['--debug', 'add_extensions', '--silent', '--path', PLATFORM.get(), '--connection',
-                         'File=' + BASE.get(), '--folder', os.path.join(REPO.get(), 'spec', 'ext'), '--name',
+                         'File=' + BASE.get(), '--folder', os.path.join(repo_path_win, 'spec', 'ext'), '--name',
                          _get_extension_name_from_feature(CFE_NAME.get())]
             if runner1c.core.main(arguments) != 0:
                 destroy_form = False
