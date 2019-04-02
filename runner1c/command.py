@@ -111,7 +111,7 @@ class Command(abc.ABC):
         setattr(p_agent, 'folder', self.arguments.folder)
         setattr(p_agent, 'port', port_agent)
         StartAgent(arguments=p_agent).execute()
-        time.sleep(1)
+        time.sleep(3)
 
         # noinspection PyAttributeOutsideInit
         self._agent_started = True
