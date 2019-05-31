@@ -407,9 +407,12 @@ class Command(abc.ABC):
         else:
             path = common.get_path_to_max_version_1c()
 
-        file_name_1c = '1cv8.exe'
-        if self._mode == Mode.ENTERPRISE and not getattr(self.arguments, 'thick', False):
+        if self._mode == Mode.WEBINST:
+            file_name_1c = 'webinst.exe'
+        elif self._mode == Mode.ENTERPRISE and not getattr(self.arguments, 'thick', False):
             file_name_1c = '1cv8c.exe'
+        else:
+            file_name_1c = '1cv8.exe'
 
         setattr(self.arguments, 'path_1c_exe', os.path.join(path, file_name_1c))
 
@@ -446,6 +449,7 @@ class Mode(Enum):
     DESIGNER = 'DESIGNER'
     ENTERPRISE = 'ENTERPRISE'
     CREATE = 'CREATEINFOBASE'
+    WEBINST = 'WEBINST'
 
 
 class EmptyParameters:
