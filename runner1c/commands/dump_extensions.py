@@ -1,4 +1,8 @@
+import distutils.dir_util as copy_tree
+import tempfile
+
 import runner1c
+import runner1c.common as common
 
 
 class DumpExtensionsParser(runner1c.parser.Parser):
@@ -23,5 +27,18 @@ class DumpExtensions(runner1c.command.Command):
     def __init__(self, **kwargs):
         kwargs['mode'] = runner1c.command.Mode.DESIGNER
         super().__init__(**kwargs)
+        self.add_argument('/DumpConfigToFiles "{temp_folder}" -AllExtensions')
 
-        self.add_argument('/DumpConfigToFiles "{folder}" -AllExtensions')
+    def execute(self):
+        temp_folder = tempfile.mkdtemp()
+        setattr(self.arguments, 'temp_folder', temp_folder)
+
+        self.debug('temp_folder "%s"', self.arguments.temp_folder)
+
+        return_code = self.run()
+
+        common.clear_folder(self.arguments.folder)
+        copy_tree.copy_tree(temp_folder, self.arguments.folder)
+        common.clear_folder(temp_folder)
+
+        return return_code
