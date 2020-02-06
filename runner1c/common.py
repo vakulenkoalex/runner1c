@@ -29,7 +29,7 @@ def get_path_to_max_version_1c():
     max_version = int_version[max(int_version)]
 
     if max_version is None:
-        raise Exception('Not found version dirs')
+        raise Exception('Not found a version dirs')
 
     return os.path.join(path_to_1c, max_version, 'bin')
 

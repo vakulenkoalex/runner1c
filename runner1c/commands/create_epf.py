@@ -19,7 +19,7 @@ class CreateEpfParser(runner1c.parser.Parser):
         self._parser.add_argument('--epf', required=True,
                                   help='путь к файлу внешней обработки или отчета, в который будет записан результат')
         self._parser.add_argument('--xml', required=True,
-                                  help='путь к корневому файлу исходников внешний обработки или отчета')
+                                  help='путь к корневому файлу исходников внешней обработки или отчета')
 
 
 class CreateEpf(runner1c.command.Command):

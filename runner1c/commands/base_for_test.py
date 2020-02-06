@@ -27,7 +27,7 @@ class BaseForTestParser(runner1c.parser.Parser):
     def set_up(self):
         self.add_argument_to_parser()
         self._parser.add_argument('--thick', action='store_const', const=True, help='толстый клиент')
-        self._parser.add_argument('--folder', required=True, help='путь к папке с репозитарием')
+        self._parser.add_argument('--folder', required=True, help='путь к папке репозитария')
         self._parser.add_argument('--create_epf', action='store_const', const=True, help='создать внешние '
                                                                                          'обработки репозитария')
         self._parser.add_argument('--create_cfe', action='store_const', const=True, help='загрузить расширения '
@@ -58,6 +58,7 @@ async def start_enterprice(self, loop):
 
     cmd = program.replace('"', '')
     stdin = '/@ ' + file_parameters
+    # noinspection GrazieInspection
     self.debug('create_subprocess_exec %s %s', cmd, stdin)
     process = await asyncio.create_subprocess_exec(cmd, stdin, loop=loop)
 

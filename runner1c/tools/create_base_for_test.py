@@ -12,11 +12,11 @@ import runner1c
 def _ask_file_dir(element, title, open_file):
     if open_file:
         path = filedialog.askopenfilenames(initialdir=element.get(),
-                                                title=title)
+                                           title=title)
     else:
         path = filedialog.askdirectory(initialdir=element.get(),
-                                            title=title,
-                                            mustexist=True)
+                                       title=title,
+                                       mustexist=True)
     if path == '':
         return
 

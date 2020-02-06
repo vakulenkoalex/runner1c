@@ -24,10 +24,9 @@ class DumpEpfParser(runner1c.parser.Parser):
     def set_up(self):
         self.add_argument_to_parser(connection_required=False)
         self._parser.add_argument('--epf', required=True,
-                                  help='путь к файлу внешней обработки или отчета, в который будет записан результат')
+                                  help='путь к файлу внешней обработки или отчета')
         self._parser.add_argument('--folder', required=True,
-                                  help='путь к выгрузки, в который будут сохранены исходники внешней '
-                                       'обработки или отчета')
+                                  help='путь, в который будут сохранены исходники внешней обработки или отчета')
 
 
 class DumpEpf(runner1c.command.Command):
