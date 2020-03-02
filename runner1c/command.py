@@ -1,7 +1,8 @@
+# noinspection GrazieInspection
 """
 при переопределении декаратор теряется, поэтому нельзя переопределять run
 run вызывается, если нужна пред обработка или пост обработка, причем для этого переопределяем execute
-execute используется как точка входа в плагин
+execute используется как точка входа плагина
 """
 
 import abc
@@ -374,7 +375,7 @@ class Command(abc.ABC):
             elif result_for_compare == '1':
                 result_code = runner1c.exit_code.EXIT_CODE.error
 
-        self.debug('result from file = %s', result_for_compare)
+        self.debug('result from a file = %s', result_for_compare)
         return result_code
 
     def _set_log_result(self):
@@ -440,7 +441,7 @@ class Command(abc.ABC):
                 break
 
         if not find_port:
-            raise Exception('Port for agent not found')
+            raise Exception('Port for an agent not found')
 
         return port_agent
 

@@ -20,7 +20,7 @@ class StartParser(runner1c.parser.Parser):
         self._parser.add_argument('--thick', action='store_const', const=True, help='толстый клиент')
         self._parser.add_argument('--test_manager', action='store_const', const=True, help='менеджер тестирования')
         self._parser.add_argument('--epf', help='путь к обработке запускаемой при старте')
-        self._parser.add_argument('--options', help='параметры запуска для передачи в клиент')
+        self._parser.add_argument('--options', help='параметры запуска для передачи клиенту')
         self._parser.add_argument('--timeout', type=int, default=0, help='таймаут выполнения операции')
 
 
