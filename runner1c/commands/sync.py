@@ -75,6 +75,9 @@ class Sync(runner1c.command.Command):
                     setattr(p_dump_epf, 'connection', self.arguments.connection)
                     setattr(p_dump_epf, 'folder', os.path.dirname(path_source))
                     setattr(p_dump_epf, 'epf', path_binary)
+                    setattr(p_dump_epf, 'access', self.arguments.access)
+                    setattr(p_dump_epf, 'login', self.arguments.login)
+                    setattr(p_dump_epf, 'password', self.arguments.password)
                     return_code = runner1c.commands.dump_epf.DumpEpf(arguments=p_dump_epf).execute()
                     if not runner1c.exit_code.success_result(return_code):
                         error_in_loop = True
