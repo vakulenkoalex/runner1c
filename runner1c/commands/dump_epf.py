@@ -49,11 +49,12 @@ class DumpEpf(runner1c.command.Command):
 
             return_code = self.run()
 
-            common.clear_folder(os.path.join(self.arguments.folder, _get_epf_name(temp_folder)))
-            self.get_module_ordinary_form([temp_folder])
-            copy_tree.copy_tree(temp_folder, self.arguments.folder)
-            common.clear_folder(temp_folder)
-            common.delete_file(temp_epf)
+            if return_code == runner1c.exit_code.EXIT_CODE.done:
+                common.clear_folder(os.path.join(self.arguments.folder, _get_epf_name(temp_folder)))
+                self.get_module_ordinary_form([temp_folder])
+                copy_tree.copy_tree(temp_folder, self.arguments.folder)
+                common.clear_folder(temp_folder)
+                common.delete_file(temp_epf)
 
             return return_code
         else:
