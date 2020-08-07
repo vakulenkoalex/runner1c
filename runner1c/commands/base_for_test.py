@@ -27,14 +27,14 @@ class BaseForTestParser(runner1c.parser.Parser):
     def set_up(self):
         self.add_argument_to_parser()
         self._parser.add_argument('--thick', action='store_const', const=True, help='толстый клиент')
-        self._parser.add_argument('--folder', required=True, help='путь к папке репозитария')
+        self._parser.add_argument('--folder', required=True, help='путь к папке репозитория')
         self._parser.add_argument('--create_epf', action='store_const', const=True, help='создать внешние '
-                                                                                         'обработки репозитария')
+                                                                                         'обработки репозитория')
         self._parser.add_argument('--create_cfe', action='store_const', const=True, help='загрузить расширения '
-                                                                                         'репозитария')
+                                                                                         'репозитория')
 
 
-async def start_enterprice(self, loop):
+async def start_enterprise(self, loop):
     p_start = runner1c.command.EmptyParameters(self.arguments)
     setattr(p_start, 'connection', self.arguments.connection)
     setattr(p_start, 'thick', self.arguments.thick)
@@ -120,7 +120,7 @@ class BaseForTest(runner1c.command.Command):
                             tasks = []
                             if getattr(self.arguments, 'create_epf', False):
                                 tasks.append(start_designer(self))
-                            tasks.append(start_enterprice(self, loop))
+                            tasks.append(start_enterprise(self, loop))
 
                             loop.run_until_complete(asyncio.wait(tasks))
                             loop.close()
