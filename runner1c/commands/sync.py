@@ -16,7 +16,7 @@ class SyncParser(runner1c.parser.Parser):
 
     @property
     def description(self):
-        return 'синхранизация исходников и бинарных файлов (отчеты, обработки, фичи)'
+        return 'синхронизация исходников и бинарных файлов (отчеты, обработки, фичи)'
 
     # noinspection PyMethodMayBeStatic
     def create_handler(self, **kwargs):
@@ -25,7 +25,7 @@ class SyncParser(runner1c.parser.Parser):
     def set_up(self):
         self.add_argument_to_parser(connection_required=False)
         self._parser.add_argument('--create', action='store_const', const=True, help='создать бинарники из исходников')
-        self._parser.add_argument('--folder', required=True, help='путь к папке репозитария')
+        self._parser.add_argument('--folder', required=True, help='путь к папке репозитория')
         self._parser.add_argument('--include', help='путь к папке, из которой нужно собрать бинарники')
         self._parser.add_argument('--exclude', help='путь к папке, которую нужно пропустить')
         self._parser.add_argument('--hash_file', help='файл с хэшем бинарников для проверки изменений')
