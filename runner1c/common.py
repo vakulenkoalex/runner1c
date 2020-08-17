@@ -5,6 +5,7 @@ from functools import partial
 
 get_path_to_project = partial(os.path.join, os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 get_path_to_script = partial(os.path.join, os.path.abspath(os.path.dirname(__file__)))
+MAXIMUM_BYTES_READ = 99999999
 
 
 def clear_folder(folder_name):
