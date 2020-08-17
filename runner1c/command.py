@@ -130,7 +130,7 @@ class Command(abc.ABC):
         self._channel.invoke_shell()
 
         # пропуск приветствия
-        self._channel.recv(99999)
+        self._channel.recv(common.MAXIMUM_BYTES_READ)
 
         # установка формата ответа
         self.send_to_agent('options set --output-format=json --show-prompt=no', False)
@@ -285,7 +285,7 @@ class Command(abc.ABC):
         while not self._channel.recv_ready():
             pass
         time.sleep(1)
-        result = self._channel.recv(99999)
+        result = self._channel.recv(common.MAXIMUM_BYTES_READ)
 
         response = result.decode()
         self.debug('agent response "%s"', response)
