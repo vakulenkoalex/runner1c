@@ -20,11 +20,11 @@
 			</Events>
 		</InputField>
 		<CheckBoxField name="ВыгружатьРасширенияВПапкуLib" id="38">
-			<DataPath>ВыгружатьРасширенияВПапкуLib</DataPath>
+			<DataPath>ВыгружатьРасширенияВПапкуExt</DataPath>
 			<Title>
 				<v8:item>
 					<v8:lang>ru</v8:lang>
-					<v8:content>Выгружать в Lib</v8:content>
+					<v8:content>Выгружать в ext</v8:content>
 				</v8:item>
 			</Title>
 			<CheckBoxType>Auto</CheckBoxType>
@@ -221,11 +221,11 @@
 				</v8:StringQualifiers>
 			</Type>
 		</Attribute>
-		<Attribute name="ВыгружатьРасширенияВПапкуLib" id="11">
+		<Attribute name="ВыгружатьРасширенияВПапкуExt" id="11">
 			<Title>
 				<v8:item>
 					<v8:lang>ru</v8:lang>
-					<v8:content>Выгружать расширения в папку lib</v8:content>
+					<v8:content>Выгружать расширения в папку ext</v8:content>
 				</v8:item>
 			</Title>
 			<Type>
