@@ -51,16 +51,16 @@ class Sync(runner1c.command.Command):
             try:
                 source_map = self._get_source()
                 for path_source, path_binary in source_map.items():
-                    if path_binary.endswith('.epf'):
+                    if path_binary.endswith('.feature'):
+                        common.create_path(os.path.dirname(path_binary))
+                        shutil.copy(path_source, path_binary)
+                    else:
                         command = 'config load-ext-files --file="{}" --ext-file="{}"'.format(
                             path_source, path_binary)
                         return_code = self.send_to_agent(command)
                         if not runner1c.exit_code.success_result(return_code):
                             error_in_loop = True
                             break
-                    else:
-                        common.create_path(os.path.dirname(path_binary))
-                        shutil.copy(path_source, path_binary)
             except Exception as exception:
                 self.error(exception)
                 result_code = runner1c.exit_code.EXIT_CODE.error
@@ -70,11 +70,14 @@ class Sync(runner1c.command.Command):
         else:
 
             for path_binary, path_source in self._get_change_binary().items():
-                if path_binary.endswith('.epf'):
+                if path_binary.endswith('.feature'):
+                    common.create_path(os.path.dirname(path_source))
+                    shutil.copy(path_binary, path_source)
+                else:
                     p_dump_epf = runner1c.command.EmptyParameters(self.arguments)
                     setattr(p_dump_epf, 'connection', self.arguments.connection)
                     setattr(p_dump_epf, 'folder', os.path.dirname(path_source))
-                    setattr(p_dump_epf, 'epf', path_binary)
+                    setattr(p_dump_epf, 'file', path_binary)
                     setattr(p_dump_epf, 'access', self.arguments.access)
                     setattr(p_dump_epf, 'login', self.arguments.login)
                     setattr(p_dump_epf, 'password', self.arguments.password)
@@ -82,9 +85,6 @@ class Sync(runner1c.command.Command):
                     if not runner1c.exit_code.success_result(return_code):
                         error_in_loop = True
                         break
-                else:
-                    common.create_path(os.path.dirname(path_source))
-                    shutil.copy(path_binary, path_source)
 
         if error_in_loop:
             result_code = runner1c.exit_code.EXIT_CODE.error
@@ -149,6 +149,8 @@ class Sync(runner1c.command.Command):
                 if file.endswith('.xml'):
                     if _is_header_epf(path_source):
                         source_map[path_source] = path_binary.replace('.xml', '.epf')
+                    elif _is_header_erf(path_source):
+                        source_map[path_source] = path_binary.replace('.xml', '.erf')
                 elif file.endswith(self._feature_binary):
                     source_map[path_source] = path_binary.replace(self._feature_binary, '.feature')
 
@@ -186,6 +188,7 @@ class Sync(runner1c.command.Command):
         change_binary = []
         source_map = {}
         self._fill_files_hash(self._get_binary('.epf'))
+        self._fill_files_hash(self._get_binary('.erf'))
         self._fill_files_hash(self._get_binary('.feature'))
 
         old_hash_file = self._read_hash_from_file()
@@ -196,9 +199,14 @@ class Sync(runner1c.command.Command):
 
         for file_name in change_binary:
             head, tail = os.path.split(file_name)
-            new_tail = tail.replace('.feature', self._feature_binary)
-            new_tail = new_tail.replace('.epf', '.xml')
             new_head = head.replace(self._binary_folder + '\\', '')
+
+            ext = os.path.splitext(file_name)[1]
+            if ext == '.feature':
+                new_tail = tail.replace(ext, self._feature_binary)
+            else:
+                new_tail = tail.replace(ext, '.xml')
+
             source_map[file_name] = os.path.join(new_head, new_tail)
 
         return source_map
@@ -210,6 +218,14 @@ def _is_header_epf(file_name):
     file.close()
 
     return 'ExternalDataProcessor' in text
+
+
+def _is_header_erf(file_name):
+    with open(file_name, mode='r', encoding='utf-8-sig') as file:
+        text = file.read()
+    file.close()
+
+    return 'ExternalReport' in text
 
 
 def _get_hash_md5(filename):
