@@ -2,7 +2,7 @@ import runner1c
 import runner1c.exit_code
 
 
-class CreateBaseParser(runner1c.parser.Parser):
+class RegServerParser(runner1c.parser.Parser):
     @property
     def name(self):
         return 'reg_server'
