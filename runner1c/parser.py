@@ -24,7 +24,7 @@ class Parser(abc.ABC):
         pass
 
     def add_argument_to_parser(self, connection_required=True, authorization=True):
-        self._parser.add_argument('--path', help='путь куда установлена платформа 1С')
+        self._parser.add_argument('--path', help='путь куда установлена платформа 1С (пример C:\\Program Files (x86)\\1cv8\\8.3.12.1714)')
         self._parser.add_argument('--connection', required=connection_required,
                                   help='строка соединения с информационной базой')
         self._parser.add_argument('--log', help='путь к файлу лога')
