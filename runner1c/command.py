@@ -494,11 +494,15 @@ class StartAgent(Command):
         call_string = self.get_string_for_call()
         return_code = self.default_result
 
+        self.debug('run1CAgent %s', call_string)
+
         # noinspection PyPep8,PyBroadException
         try:
             subprocess.Popen('start "no wait" ' + call_string, shell=True)
         except Exception as exception:
             self.error(exception)
             return_code = runner1c.exit_code.EXIT_CODE.error
+
+        self.debug('exit code = %s', return_code)
 
         return return_code
