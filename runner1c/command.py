@@ -417,6 +417,9 @@ class Command(abc.ABC):
 
         setattr(self.arguments, 'path_1c_exe', os.path.join(path, file_name_1c))
 
+        if not os.path.isfile(self.arguments.path_1c_exe):
+            raise Exception('Path to 1cv8.exe not found')
+
     def _delete_temp_files(self):
         if not self.arguments.external_result:
             common.delete_file(self.arguments.result)
