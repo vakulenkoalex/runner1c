@@ -417,6 +417,9 @@ class Command(abc.ABC):
 
         setattr(self.arguments, 'path_1c_exe', os.path.join(path, file_name_1c))
 
+        if not os.path.isfile(self.arguments.path_1c_exe):
+            raise Exception('Path to 1cv8.exe not found')
+
     def _delete_temp_files(self):
         if not self.arguments.external_result:
             common.delete_file(self.arguments.result)
@@ -491,11 +494,15 @@ class StartAgent(Command):
         call_string = self.get_string_for_call()
         return_code = self.default_result
 
+        self.debug('run1CAgent %s', call_string)
+
         # noinspection PyPep8,PyBroadException
         try:
             subprocess.Popen('start "no wait" ' + call_string, shell=True)
         except Exception as exception:
             self.error(exception)
             return_code = runner1c.exit_code.EXIT_CODE.error
+
+        self.debug('exit code = %s', return_code)
 
         return return_code
