@@ -140,7 +140,7 @@ def _create_base_click():
         shutil.rmtree(BASE.get(), True)
     os.makedirs(BASE.get())
 
-    arguments = ['--debug', 'base_for_test', '--silent', '--path', PLATFORM.get(), '--connection', 'File=' + BASE.get(),
+    arguments = ['--debug', 'base_for_test', '--path', PLATFORM.get(), '--connection', 'File=' + BASE.get(),
                  '--folder', repo_path_win]
     if CREATE_EPF.get():
         arguments.append('--create_epf')
