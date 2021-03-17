@@ -66,7 +66,7 @@ class Command(abc.ABC):
             self._add_argument_path_to_1c()
 
         # noinspection PyPep8
-        if not agent_channel is None:
+        if agent_channel is not None:
             self._client, self._channel = agent_channel
             self._agent_started = True
 
@@ -427,6 +427,7 @@ class Command(abc.ABC):
         if not self.arguments.external_log:
             common.delete_file(self.arguments.log)
 
+    # noinspection PyMethodMayBeStatic
     def _get_port_for_agent(self):
 
         port_agent = 1543

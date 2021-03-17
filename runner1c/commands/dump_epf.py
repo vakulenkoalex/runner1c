@@ -33,7 +33,8 @@ class DumpEpf(runner1c.command.Command):
     def __init__(self, **kwargs):
         kwargs['mode'] = runner1c.command.Mode.DESIGNER
         super().__init__(**kwargs)
-        self.add_argument('/DumpExternalDataProcessorOrReportToFiles "{temp_folder}" "{temp_file}" -Format Hierarchical')
+        self.add_argument('/DumpExternalDataProcessorOrReportToFiles "{temp_folder}" "{temp_file}" '
+                          '-Format Hierarchical')
 
     def execute(self):
         if getattr(self.arguments, 'connection', False):
