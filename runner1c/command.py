@@ -309,6 +309,12 @@ class Command(abc.ABC):
         return forms_path
 
     def _parse_module_from_bin(self, file_name):
+        # первоначально ищем строку 00000024 00000024 7fffffff
+        # потом ищем строку заканчивающуюся 7fffffff
+        # на следующей строке начинается код формы
+        # код формы заканчивается, когда находим строку с 7fffffff
+        # последнюю строку кода не берем, если она пустая, иначе получается лишняя пустая строка
+
         self.debug('parse %s', file_name)
 
         file_path = os.path.split(file_name)[0]
@@ -317,10 +323,11 @@ class Command(abc.ABC):
             os.mkdir(module_path)
 
         find_string = 0
-        open_file = False
+        line_for_write = ''
         module_file_name = os.path.join(module_path, 'Module.bsl')
 
         origin_file = open(file_name, mode='rb')
+        module_file = open(module_file_name, mode='w', encoding='utf-8-sig')
 
         for line in origin_file:
 
@@ -332,7 +339,15 @@ class Command(abc.ABC):
             elif find_string == 2:
 
                 if line.find(b'7fffffff') != -1:
+                    new_line = line_for_write.replace(chr(10), '')
+                    if new_line != '':
+                        # noinspection PyUnboundLocalVariable
+                        module_file.write(new_line)
                     break
+
+                if line_for_write != '':
+                    # noinspection PyUnboundLocalVariable
+                    module_file.write(line_for_write)
 
                 line_read = line.decode('utf8')
 
@@ -341,21 +356,11 @@ class Command(abc.ABC):
                     if ord(element) not in [0, 13, 65279]:
                         line_for_write += element
 
-                if line_for_write != '':
-                    if not open_file:
-                        module_file = open(module_file_name, mode='w', encoding='utf-8-sig')
-                        open_file = True
-
-                    # noinspection PyUnboundLocalVariable
-                    module_file.write(line_for_write)
-
             elif line.find(b'00000024 00000024 7fffffff') != -1:
                 find_string = 1
 
         origin_file.close()
-
-        if open_file:
-            module_file.close()
+        module_file.close()
 
     def _get_result_from_file(self):
         result_code = self.default_result
