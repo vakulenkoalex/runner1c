@@ -45,6 +45,7 @@ class DumpEpf(runner1c.command.Command):
             setattr(self.arguments, 'temp_folder', temp_folder)
             setattr(self.arguments, 'temp_file', temp_file)
 
+            self.debug('file "%s"', self.arguments.file)
             self.debug('temp_file "%s"', self.arguments.temp_file)
             self.debug('temp_folder "%s"', self.arguments.temp_folder)
 
