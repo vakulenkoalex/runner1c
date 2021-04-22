@@ -26,11 +26,10 @@ def _load_plugins(commands, subparsers):
         module_obj = getattr(commands_obj, module_name)
         for elem in dir(module_obj):
             obj = getattr(module_obj, elem)
-            if inspect.isclass(obj):
-                if issubclass(obj, Parser):
-                    parser = obj(subparsers)
-                    parser.set_up()
-                    commands[parser.name] = parser
+            if inspect.isclass(obj) and issubclass(obj, Parser):
+                parser = obj(subparsers)
+                parser.set_up()
+                commands[parser.name] = parser
 
 
 def _add_common_argument(parser):
