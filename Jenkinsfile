@@ -93,14 +93,6 @@ node(){
                     
                     junit('junitxml.xml')
                     
-                    timeout(time: 1, unit: 'HOURS') {
-                        def QualityGate = waitForQualityGate()
-                        if (QualityGate.status != 'OK') {
-                            currentBuild.result = 'UNSTABLE'
-                            currentBuild.description = 'SonarQube'
-                        }
-                    }
-
                 }
 
             } catch (exception) {

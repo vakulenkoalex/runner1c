@@ -29,6 +29,8 @@ class SyncParser(runner1c.parser.Parser):
         self._parser.add_argument('--include', help='путь к папке, из которой нужно собрать бинарники')
         self._parser.add_argument('--exclude', help='путь к папке, которую нужно пропустить')
         self._parser.add_argument('--hash_file', help='файл с хэшем бинарников для проверки изменений')
+        self._parser.add_argument('--clear_hash', action='store_const', const=True,
+                                  help='удалить старый файл с хэшем бинарников')
 
 
 class Sync(runner1c.command.Command):
@@ -172,7 +174,7 @@ class Sync(runner1c.command.Command):
 
     def _read_hash_from_file(self):
         files_hash = {}
-        if os.path.exists(self._hash_file_name):
+        if os.path.exists(self._hash_file_name) and not getattr(self.arguments, 'clear_hash', False):
             with open(self._hash_file_name, mode='r', encoding='utf-8') as file_stream:
                 # noinspection PyBroadException,PyPep8
                 try:
