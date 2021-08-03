@@ -68,7 +68,7 @@ class DumpConfig(runner1c.command.Command):
                 if repair_files:
                     self._delete_use_constant()
                     # noinspection PyUnboundLocalVariable
-                    self._compare_file_with_error(copy_files)
+                    self._change_new_version_to_old(copy_files)
 
             if len(folders_for_scan) > 0:
                 self.get_module_ordinary_form(folders_for_scan)
@@ -91,39 +91,10 @@ class DumpConfig(runner1c.command.Command):
         common.delete_file(self._changes)
         return text
 
-    def _compare_file_with_error(self, copy_files):
-        self.debug('compare_file_with_error')
-        origin_file_name = tempfile.mktemp('.txt')
-        copy_file_name = tempfile.mktemp('.txt')
-        result_file_name = tempfile.mktemp('.txt')
-        with open(origin_file_name, mode='w', encoding='utf-8') as origin_file, \
-                open(copy_file_name, mode='w', encoding='utf-8') as copy_file:
-            for file, copy in copy_files.items():
-                origin_file.write(file + '\n')
-                copy_file.write(copy + '\n')
-        origin_file.close()
-        copy_file.close()
-
-        p_diff_mxl = runner1c.command.EmptyParameters(self.arguments)
-        setattr(p_diff_mxl, 'first', origin_file_name)
-        setattr(p_diff_mxl, 'second', copy_file_name)
-        setattr(p_diff_mxl, 'equal_files', result_file_name)
-        return_code_diff = runner1c.commands.diff_mxl.DiffMxl(arguments=p_diff_mxl).execute()
-
-        if return_code_diff == runner1c.exit_code.EXIT_CODE.done:
-            with open(result_file_name, mode='r', encoding='utf-8-sig') as result_file:
-                for line in result_file.readlines():
-                    file = line.rstrip('\n')
-                    copy = copy_files[file]
-                    shutil.move(copy, file)
-            result_file.close()
-
-            common.delete_file(origin_file_name)
-            common.delete_file(copy_file_name)
-            common.delete_file(result_file_name)
-
-        else:
-            print('ошибка при сравнении файлов mxl платформой')
+    def _change_new_version_to_old(self, copy_files):
+        self.debug('change_new_version_to_old')
+        for full_path, tmp_file in copy_files.items():
+            shutil.move(tmp_file, full_path)
 
     def _copy__files_with_error_to_tmp(self):
         copy_files = {}
