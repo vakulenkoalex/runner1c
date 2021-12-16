@@ -51,10 +51,9 @@ FORM = tkinter.Tk()
 BASE = _place_ask_directory('Путь к базе', 0)
 PLATFORM = _place_ask_directory('Путь к платформе', 40)
 REPO = _place_ask_directory('Путь к исходникам', 80)
-CFE_NAME = _place_ask_directory('Путь к feature', 120, True)
+CFE_NAME = _place_ask_directory('Путь к feature или epf', 120, True)
 THICK_CLIENT = place_checkbox('Толстый клиент', 90, 170)
 CREATE_EPF = place_checkbox('Создать epf', 210, 170)
-CREATE_CFE = place_checkbox('Создать cfe', 300, 170)
 
 
 def _set_entry_value(element, text):
@@ -111,13 +110,24 @@ def _save_git_path_for_base(base_path, repo_path):
     txt_stream.close()
 
 
-def _get_extension_name_from_feature(feature_path):
+def _get_extension_name_from_file(file_path):
+    path_for_search = file_path
+
+    if os.path.splitext(file_path)[1] == '.epf':
+        path_for_search = file_path.replace('build/', '')
+        path_for_search = path_for_search.replace('.epf', '/Ext/ObjectModule.bsl')
+
     array = []
-    with open(feature_path, mode='r', encoding='utf-8') as file:
+    with open(path_for_search, mode='r', encoding='utf-8') as file:
         for name in re.compile('@Расширение.+', re.MULTILINE).findall(file.read()):
             array.append(name.replace('@', '').replace('Расширение', ''))
     file.close()
+
     return ','.join(array)
+
+
+def _folder_for_cfe_exist(repo_path):
+    return os.path.exists(repo_path + '\\lib\\ext')
 
 
 def _create_base_click():
@@ -133,6 +143,12 @@ def _create_base_click():
         messagebox.showerror("Ошибка", 'Не указан путь к исходникам')
         return
 
+    if CFE_NAME.get():
+        extension_name = _get_extension_name_from_file(CFE_NAME.get())
+        if len(extension_name) == 0:
+            messagebox.showerror("Ошибка", 'В выбраных фичах/тестах нет расширений')
+            return
+
     repo_path = REPO.get()
     repo_path_win = repo_path.replace('/', '\\')
 
@@ -146,18 +162,18 @@ def _create_base_click():
         arguments.append('--create_epf')
     if THICK_CLIENT.get():
         arguments.append('--thick')
-    if CREATE_CFE.get() and not CFE_NAME.get():
-        arguments.append('--create_cfe')
+    if _folder_for_cfe_exist(repo_path_win):
+         arguments.append('--create_cfe')
 
     _save_parameters(repo_path, BASE.get(), PLATFORM.get(), THICK_CLIENT.get())
     _save_git_path_for_base(BASE.get(), repo_path_win)
 
     if runner1c.core.main(arguments) == 0:
         destroy_form = True
-        if CREATE_CFE.get() and CFE_NAME.get():
+        if CFE_NAME.get():
             arguments = ['--debug', 'add_extensions', '--silent', '--path', PLATFORM.get(), '--connection',
                          'File=' + BASE.get(), '--folder', os.path.join(repo_path_win, 'spec', 'ext'), '--name',
-                         _get_extension_name_from_feature(CFE_NAME.get())]
+                         extension_name]
             if runner1c.core.main(arguments) != 0:
                 destroy_form = False
 
