@@ -463,7 +463,9 @@ class Command(abc.ABC):
         if len(part_check_version) < 4:
             part_check_version.append('0')
 
-        part_current_version = os.path.split(self.arguments.path)[1].split('.')
+        path_element = self.arguments.path_1c_exe.split(os.sep)
+        current_version = path_element[len(path_element) - 3]
+        part_current_version = current_version.split('.')
 
         for element in range(4):
             if int(part_current_version[element]) < int(part_check_version[element]):
