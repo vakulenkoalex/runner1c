@@ -426,6 +426,9 @@ class Command(abc.ABC):
         if not os.path.isfile(self.arguments.path_1c_exe):
             raise Exception('Path to 1cv8.exe not found')
 
+        path_1c_element = self.arguments.path_1c_exe.split(os.sep)
+        setattr(self.arguments, 'version_1c', path_1c_element[len(path_1c_element) - 3])
+
     def _delete_temp_files(self):
         if not self.arguments.external_result:
             common.delete_file(self.arguments.result)
@@ -463,9 +466,7 @@ class Command(abc.ABC):
         if len(part_check_version) < 4:
             part_check_version.append('0')
 
-        path_element = self.arguments.path_1c_exe.split(os.sep)
-        current_version = path_element[len(path_element) - 3]
-        part_current_version = current_version.split('.')
+        part_current_version = self.arguments.version_1c.split('.')
 
         for element in range(4):
             if int(part_current_version[element]) < int(part_check_version[element]):
