@@ -185,7 +185,9 @@ class Command(abc.ABC):
             return
 
         self.send_to_agent('common disconnect-ib', False)
-        self.send_to_agent('common shutdown', False)
+
+        if not self.version_1c_greater('8.3.20'):
+            self.send_to_agent('common shutdown', False)
 
         self._channel.close()
         self._client.close()
