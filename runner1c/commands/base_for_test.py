@@ -9,6 +9,7 @@ import runner1c.commands.start
 import runner1c.commands.sync as sync
 import runner1c.common as common
 import runner1c.exit_code as exit_code
+import runner1c.commands.load_config as load_config
 
 
 class BaseForTestParser(runner1c.parser.Parser):
@@ -90,40 +91,42 @@ class BaseForTest(runner1c.command.Command):
 
             # noinspection PyPep8,PyBroadException
             try:
-                command = 'config load-files --dir "{}" --update-config-dump-info'
-                return_code = self.send_to_agent(command.format(os.path.join(self.arguments.folder,
-                                                                             folder_for_config_src)))
+                p_load_config = runner1c.command.EmptyParameters(self.arguments)
+                setattr(p_load_config, 'connection', self.arguments.connection)
+                setattr(p_load_config, 'folder', os.path.join(self.arguments.folder, folder_for_config_src))
+                setattr(p_load_config, 'agent', True)
+                setattr(p_load_config, 'update', True)
+                return_code = load_config.LoadConfig(arguments = p_load_config,
+                                                     agent_channel = self.get_agent_channel()).execute()
+
                 if exit_code.success_result(return_code):
-                    return_code = self.send_to_agent('config update-db-cfg')
+
+                    if getattr(self.arguments, 'create_cfe', False):
+                        p_extensions = runner1c.command.EmptyParameters(self.arguments)
+                        setattr(p_extensions, 'connection', self.arguments.connection)
+                        setattr(p_extensions, 'folder', os.path.join(self.arguments.folder, 'lib', 'ext'))
+                        add_extensions.AddExtensions(arguments=p_extensions,
+                                                     agent_channel=self.get_agent_channel()).execute()
+
+                    if getattr(self.arguments, 'create_epf', False):
+                        p_sync = runner1c.command.EmptyParameters(self.arguments)
+                        setattr(p_sync, 'connection', self.arguments.connection)
+                        setattr(p_sync, 'folder', self.arguments.folder)
+                        setattr(p_sync, 'create', True)
+                        setattr(p_sync, 'include', os.path.join(p_sync.folder, 'spec', 'fixtures'))
+                        return_code = sync.Sync(arguments=p_sync, agent_channel=self.get_agent_channel()).execute()
 
                     if exit_code.success_result(return_code):
+                        loop = asyncio.ProactorEventLoop()
+                        asyncio.set_event_loop(loop)
 
-                        if getattr(self.arguments, 'create_cfe', False):
-                            p_extensions = runner1c.command.EmptyParameters(self.arguments)
-                            setattr(p_extensions, 'connection', self.arguments.connection)
-                            setattr(p_extensions, 'folder', os.path.join(self.arguments.folder, 'lib', 'ext'))
-                            add_extensions.AddExtensions(arguments=p_extensions,
-                                                         agent_channel=self.get_agent_channel()).execute()
-
+                        tasks = []
                         if getattr(self.arguments, 'create_epf', False):
-                            p_sync = runner1c.command.EmptyParameters(self.arguments)
-                            setattr(p_sync, 'connection', self.arguments.connection)
-                            setattr(p_sync, 'folder', self.arguments.folder)
-                            setattr(p_sync, 'create', True)
-                            setattr(p_sync, 'include', os.path.join(p_sync.folder, 'spec', 'fixtures'))
-                            return_code = sync.Sync(arguments=p_sync, agent_channel=self.get_agent_channel()).execute()
+                            tasks.append(start_designer(self))
+                        tasks.append(start_enterprise(self, loop))
 
-                        if exit_code.success_result(return_code):
-                            loop = asyncio.ProactorEventLoop()
-                            asyncio.set_event_loop(loop)
-
-                            tasks = []
-                            if getattr(self.arguments, 'create_epf', False):
-                                tasks.append(start_designer(self))
-                            tasks.append(start_enterprise(self, loop))
-
-                            loop.run_until_complete(asyncio.wait(tasks))
-                            loop.close()
+                        loop.run_until_complete(asyncio.wait(tasks))
+                        loop.close()
 
             except Exception as exception:
                 self.error(exception)
