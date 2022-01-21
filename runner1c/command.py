@@ -110,7 +110,7 @@ class Command(abc.ABC):
         # запуск конфигуратора в режиме агента
         p_agent = runner1c.command.EmptyParameters(self.arguments)
         setattr(p_agent, 'connection', self.arguments.connection)
-        setattr(p_agent, 'folder', self.arguments.folder)
+        setattr(p_agent, 'folder', os.path.split(self.arguments.folder)[0])
         setattr(p_agent, 'port', port_agent)
         StartAgent(arguments=p_agent).execute()
         time.sleep(3)
