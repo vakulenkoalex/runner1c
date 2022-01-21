@@ -187,7 +187,7 @@ def _create_base_click():
 
 
 def _create_form():
-    FORM.title('Создание базы для тестов')
+    FORM.title('Создание базы для тестов ' + runner1c.__version__)
     FORM.geometry('430x200')
 
     i = 0
