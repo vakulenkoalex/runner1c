@@ -54,6 +54,7 @@ class Command(abc.ABC):
         self._agent_started = False
         self._cmd = []
         self._logger = logging.getLogger(self.name)
+        self._agent_folder = ''
 
         if self._mode == Mode.DESIGNER:
             self._set_designer()
@@ -106,13 +107,16 @@ class Command(abc.ABC):
             return
 
         port_agent = self._get_port_for_agent()
+        self._agent_folder = os.path.split(self.arguments.folder)[0]
 
         # запуск конфигуратора в режиме агента
         p_agent = runner1c.command.EmptyParameters(self.arguments)
         setattr(p_agent, 'connection', self.arguments.connection)
-        setattr(p_agent, 'folder', os.path.split(self.arguments.folder)[0])
+        setattr(p_agent, 'folder', self._agent_folder)
         setattr(p_agent, 'port', port_agent)
-        StartAgent(arguments=p_agent).execute()
+        return_code = StartAgent(arguments=p_agent).execute()
+        if not runner1c.exit_code.success_result(return_code):
+            raise Exception('Failed start agent')
         time.sleep(3)
 
         # noinspection PyAttributeOutsideInit
@@ -196,7 +200,7 @@ class Command(abc.ABC):
         self._agent_started = False
 
         # при старте агента 1с создает файл с настройками клиента, нужно его удалить
-        common.delete_file(os.path.join(os.getcwd(), '1cv8u.pfl'))
+        common.delete_file(os.path.join(self._agent_folder, 'agentbasedir.json'))
 
     def get_agent_channel(self):
         return self._client, self._channel
