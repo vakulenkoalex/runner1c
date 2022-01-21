@@ -210,6 +210,23 @@ class Command(abc.ABC):
 
         return ' '.join(self._cmd).format(**vars(self.arguments))
 
+    def version_1c_greater(self, check_version):
+
+        result = True
+
+        part_check_version = check_version.split('.')
+        if len(part_check_version) < 4:
+            part_check_version.append('0')
+
+        part_current_version = self.arguments.version_1c.split('.')
+
+        for element in range(4):
+            if int(part_current_version[element]) < int(part_check_version[element]):
+                result = False
+                break
+
+        return result
+
     def _start(self):
         call_string = self.get_string_for_call()
         self.debug('run1C %s', call_string)
@@ -222,7 +239,7 @@ class Command(abc.ABC):
         self.debug('result run1C = %s', result_call)
 
         if os.path.exists(self.arguments.log):
-            if not self._version_1c_greater('8.3.18'):
+            if not self.version_1c_greater('8.3.18'):
                 common.convert_cp1251_to_utf8(self.arguments.log)
             if self.arguments.log.endswith('html'):
                 common.save_as_html(self.arguments.log)
@@ -448,23 +465,6 @@ class Command(abc.ABC):
             raise Exception('Port for an agent not found')
 
         return port_agent
-
-    def _version_1c_greater(self, check_version):
-
-        result = True
-
-        part_check_version = check_version.split('.')
-        if len(part_check_version) < 4:
-            part_check_version.append('0')
-
-        part_current_version = self.arguments.version_1c.split('.')
-
-        for element in range(4):
-            if int(part_current_version[element]) < int(part_check_version[element]):
-                result = False
-                break
-
-        return result
 
 
 class Mode(Enum):
