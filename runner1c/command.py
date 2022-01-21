@@ -7,7 +7,6 @@ execute используется как точка входа плагина
 
 import abc
 import copy
-import json
 import logging
 import os
 import socket
@@ -157,21 +156,12 @@ class Command(abc.ABC):
 
             while not response_receive:
 
-                for line in result_sting.split(']'):
-                    if len(line.strip()) == 0:
-                        continue
-
-                    try:
-                        for element in json.loads(line + ']'):
-                            response_type = element.get('type', 'none')
-                            if response_type == 'success':
-                                result_code = runner1c.exit_code.EXIT_CODE.done
-                                response_receive = True
-                            elif response_type == 'error':
-                                result_code = runner1c.exit_code.EXIT_CODE.error
-                                response_receive = True
-                    except json.decoder.JSONDecodeError:
-                        pass
+                if result_sting.find('"type": "error"') > 0:
+                    result_code = runner1c.exit_code.EXIT_CODE.error
+                    response_receive = True
+                elif result_sting.find('"type": "success"') > 0:
+                    result_code = runner1c.exit_code.EXIT_CODE.done
+                    response_receive = True
 
                 if response_receive:
                     break
