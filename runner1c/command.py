@@ -69,6 +69,8 @@ class Command(abc.ABC):
             self._client, self._channel = agent_channel
             self._agent_started = True
 
+        self._set_path_1c()
+
     @property
     def name(self):
         return self.__class__.__name__
@@ -201,7 +203,6 @@ class Command(abc.ABC):
         self._cmd.append(string)
 
     def get_string_for_call(self):
-        self._set_path_1c()
         self._set_log_result()
 
         if getattr(self.arguments, 'connection', False):
