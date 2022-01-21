@@ -6,6 +6,7 @@ import tempfile
 
 import runner1c
 import runner1c.common as common
+import runner1c.exit_code as exit_code
 
 
 class DumpEpfParser(runner1c.parser.Parser):
@@ -51,7 +52,7 @@ class DumpEpf(runner1c.command.Command):
 
             return_code = self.run()
 
-            if return_code == runner1c.exit_code.EXIT_CODE.done:
+            if return_code == exit_code.EXIT_CODE.done:
                 common.clear_folder(os.path.join(self.arguments.folder, _get_file_name_from_xml(temp_folder)))
                 self.get_module_ordinary_form([temp_folder])
                 copy_tree.copy_tree(temp_folder, self.arguments.folder)

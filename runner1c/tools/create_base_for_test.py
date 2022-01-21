@@ -1,10 +1,10 @@
 import os
+import re
 import shutil
 import tkinter
 import tkinter.filedialog as filedialog
 import tkinter.messagebox as messagebox
 from configparser import ConfigParser
-import re
 
 import runner1c
 
