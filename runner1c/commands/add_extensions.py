@@ -15,7 +15,6 @@ class AddExtensionsParser(runner1c.parser.Parser):
     def description(self):
         return 'добавление расширений в конфигурацию'
 
-    # noinspection PyMethodMayBeStatic
     def create_handler(self, **kwargs):
         return AddExtensions(**kwargs)
 
@@ -40,7 +39,6 @@ class AddExtensions(runner1c.command.Command):
 
         self.start_agent()
 
-        # noinspection PyPep8,PyBroadException
         try:
             for name in extensions_name:
                 command = 'config load-files --dir "{}" --extension {}'

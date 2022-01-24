@@ -75,7 +75,7 @@ def _radiobutton_change(repo_name):
     _delete_entry_value(PLATFORM)
     _delete_entry_value(REPO)
     THICK_CLIENT.set(False)
-    # noinspection PyPep8,PyBroadException
+
     try:
         _set_entry_value(BASE, CONFIG.get(repo_name, 'base'))
         _set_entry_value(PLATFORM, CONFIG.get(repo_name, 'platform'))
@@ -137,6 +137,8 @@ def _folder_for_cfe_exist(repo_path):
 
 
 def _create_base_click():
+    extension_name = None
+
     if not BASE.get():
         messagebox.showerror("Ошибка", 'Не указан путь к базе')
         return
@@ -168,7 +170,7 @@ def _create_base_click():
     if THICK_CLIENT.get():
         arguments.append('--thick')
     if _folder_for_cfe_exist(repo_path):
-         arguments.append('--create_cfe')
+        arguments.append('--create_cfe')
 
     _save_parameters(repo_path, BASE.get(), PLATFORM.get(), THICK_CLIENT.get())
     _save_git_path_for_base(BASE.get(), repo_path)

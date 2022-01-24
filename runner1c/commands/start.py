@@ -11,7 +11,6 @@ class StartParser(runner1c.parser.Parser):
     def description(self):
         return 'запуск системы в режиме "Предприятие"'
 
-    # noinspection PyMethodMayBeStatic
     def create_handler(self, **kwargs):
         return Start(**kwargs)
 

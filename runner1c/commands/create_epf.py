@@ -10,7 +10,6 @@ class CreateEpfParser(runner1c.parser.Parser):
     def description(self):
         return 'создание внешних обработок или отчетов из исходников'
 
-    # noinspection PyMethodMayBeStatic
     def create_handler(self, **kwargs):
         return CreateEpf(**kwargs)
 

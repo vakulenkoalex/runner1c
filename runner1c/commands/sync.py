@@ -18,7 +18,6 @@ class SyncParser(runner1c.parser.Parser):
     def description(self):
         return 'синхронизация исходников и бинарных файлов (отчеты, обработки, фичи)'
 
-    # noinspection PyMethodMayBeStatic
     def create_handler(self, **kwargs):
         return Sync(**kwargs)
 
@@ -34,22 +33,24 @@ class SyncParser(runner1c.parser.Parser):
 
 
 class Sync(runner1c.command.Command):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.files_hash = {}
+
     @property
     def default_result(self):
         return runner1c.exit_code.EXIT_CODE.done
 
     @runner1c.command.create_base_if_necessary
     def execute(self):
-        # noinspection PyAttributeOutsideInit
-        self.files_hash = {}
         result_code = self.default_result
         error_in_loop = False
+        source_map = {}
 
         if getattr(self.arguments, 'create', True):
 
             self.start_agent()
 
-            # noinspection PyPep8,PyBroadException
             try:
                 source_map = self._get_source()
                 for path_source, path_binary in source_map.items():
@@ -93,7 +94,6 @@ class Sync(runner1c.command.Command):
 
         if result_code == self.default_result:
             if getattr(self.arguments, 'create', True):
-                # noinspection PyUnboundLocalVariable
                 self._fill_files_hash(source_map.values())
             self._save_file_hash()
 
@@ -176,7 +176,6 @@ class Sync(runner1c.command.Command):
         files_hash = {}
         if os.path.exists(self._hash_file_name) and not getattr(self.arguments, 'clear_hash', False):
             with open(self._hash_file_name, mode='r', encoding='utf-8') as file_stream:
-                # noinspection PyBroadException,PyPep8
                 try:
                     files_hash = json.loads(file_stream.read())
                 except:

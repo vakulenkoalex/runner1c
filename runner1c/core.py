@@ -11,6 +11,7 @@ from runner1c.parser import Parser
 def _load_plugins(commands, subparsers):
     commands_dir = "commands"
     modules = []
+    package_obj = None
 
     for file_name in os.listdir(common.get_path_to_script(commands_dir)):
         if file_name.endswith(".py"):
@@ -20,7 +21,6 @@ def _load_plugins(commands, subparsers):
                 package_obj = __import__(full_module_name)
                 modules.append(module_name)
 
-    # noinspection PyUnboundLocalVariable
     commands_obj = getattr(package_obj, commands_dir)
     for module_name in modules:
         module_obj = getattr(commands_obj, module_name)

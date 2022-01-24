@@ -14,7 +14,6 @@ class PlatformCheckParser(runner1c.parser.Parser):
     def description(self):
         return 'проверка конфигурации'
 
-    # noinspection PyMethodMayBeStatic
     def create_handler(self, **kwargs):
         return PlatformCheckConfig(**kwargs)
 

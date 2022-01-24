@@ -18,7 +18,6 @@ class DumpConfigParser(runner1c.parser.Parser):
     def description(self):
         return 'выгрузка конфигурации на исходники'
 
-    # noinspection PyMethodMayBeStatic
     def create_handler(self, **kwargs):
         return DumpConfig(**kwargs)
 
@@ -36,7 +35,6 @@ class DumpConfig(runner1c.command.Command):
         self.add_argument('/DumpConfigToFiles "{folder}" -Format Hierarchical')
 
         if getattr(self.arguments, 'update', False):
-            # noinspection PyAttributeOutsideInit
             self._changes = tempfile.mktemp('.txt')
             self.add_argument('-update -force -getChanges {changes}')
 
@@ -44,6 +42,9 @@ class DumpConfig(runner1c.command.Command):
             self.debug('changes "%s"', self._changes)
 
     def execute(self):
+        text = None
+        copy_files = None
+
         if getattr(self.arguments, 'repair', False):
             copy_files = self._copy__files_with_error_to_tmp()
 
@@ -62,12 +63,10 @@ class DumpConfig(runner1c.command.Command):
             if getattr(self.arguments, 'repair', False):
                 repair_files = True
                 if getattr(self.arguments, 'update', False):
-                    # noinspection PyUnboundLocalVariable
                     repair_files = text.find('FullDump') > 0
 
                 if repair_files:
                     self._delete_use_constant()
-                    # noinspection PyUnboundLocalVariable
                     self._change_new_version_to_old(copy_files)
 
             if len(folders_for_scan) > 0:
@@ -83,11 +82,10 @@ class DumpConfig(runner1c.command.Command):
         return folders_for_scan
 
     def _read_changes(self):
-        # noinspection PyUnboundLocalVariable
         with open(self._changes, mode='r', encoding='utf-8') as file:
             text = file.read()
         file.close()
-        # noinspection PyUnboundLocalVariable
+
         common.delete_file(self._changes)
         return text
 
@@ -148,7 +146,6 @@ def _get_files_with_error_in_dump():
 
 
 def _get_files_with_constant():
-    # noinspection PyPep8
     return [
         "DataProcessors\НастройкаРазрешенийНаИспользованиеВнешнихРесурсов\Forms\НастройкиИспользованияПрофилейБезопасности\Ext\Form.xml",
         "DataProcessors\ПанельАдминистрированияБСП\Forms\НастройкиПользователейИПрав\Ext\Form.xml",

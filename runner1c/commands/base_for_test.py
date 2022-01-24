@@ -21,7 +21,6 @@ class BaseForTestParser(runner1c.parser.Parser):
     def description(self):
         return 'создание базы из исходников для тестирования'
 
-    # noinspection PyMethodMayBeStatic
     def create_handler(self, **kwargs):
         return BaseForTest(**kwargs)
 
@@ -59,7 +58,7 @@ async def start_enterprise(self, loop):
 
     cmd = program.replace('"', '')
     stdin = '/@ ' + file_parameters
-    # noinspection GrazieInspection
+
     self.debug('create_subprocess_exec %s %s', cmd, stdin)
     process = await asyncio.create_subprocess_exec(cmd, stdin, loop=loop)
 
@@ -89,15 +88,14 @@ class BaseForTest(runner1c.command.Command):
 
             self.start_agent()
 
-            # noinspection PyPep8,PyBroadException
             try:
                 p_load_config = runner1c.command.EmptyParameters(self.arguments)
                 setattr(p_load_config, 'connection', self.arguments.connection)
                 setattr(p_load_config, 'folder', os.path.join(self.arguments.folder, folder_for_config_src))
                 setattr(p_load_config, 'agent', True)
                 setattr(p_load_config, 'update', True)
-                return_code = load_config.LoadConfig(arguments = p_load_config,
-                                                     agent_channel = self.get_agent_channel()).execute()
+                return_code = load_config.LoadConfig(arguments=p_load_config,
+                                                     agent_channel=self.get_agent_channel()).execute()
 
                 if exit_code.success_result(return_code):
 

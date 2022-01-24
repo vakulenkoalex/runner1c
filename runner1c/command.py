@@ -1,4 +1,4 @@
-# noinspection GrazieInspection
+
 """
 при переопределении декоратор теряется, поэтому нельзя переопределять run
 run вызывается, если нужна пред обработка или пост обработка, причем для этого переопределяем execute
@@ -65,7 +65,6 @@ class Command(abc.ABC):
         else:
             self._add_argument_path_to_1c()
 
-        # noinspection PyPep8
         if agent_channel is not None:
             self._client, self._channel = agent_channel
             self._agent_started = True
@@ -119,18 +118,15 @@ class Command(abc.ABC):
             raise Exception('Failed start agent')
         time.sleep(3)
 
-        # noinspection PyAttributeOutsideInit
         self._agent_started = True
         self._need_close_agent = True
 
         # подключение к агенту
 
-        # noinspection PyAttributeOutsideInit
         self._client = paramiko.SSHClient()
         self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self._client.connect(hostname='127.0.0.1', username='', password='', port=port_agent)
 
-        # noinspection PyAttributeOutsideInit
         self._channel = self._client.get_transport().open_session()
         self._channel.invoke_shell()
 
@@ -145,7 +141,6 @@ class Command(abc.ABC):
             raise Exception('Failed connect to agent')
 
     def send_to_agent(self, command, wait_response=True):
-        # noinspection PyPep8
         if not self._agent_started:
             raise Exception('Agent not started')
 
@@ -184,7 +179,6 @@ class Command(abc.ABC):
     def close_agent(self):
         if not self._need_close_agent:
             return
-        # noinspection PyPep8
         if not self._agent_started:
             return
 
@@ -196,7 +190,6 @@ class Command(abc.ABC):
         self._channel.close()
         self._client.close()
 
-        # noinspection PyAttributeOutsideInit
         self._agent_started = False
 
         # при старте агента 1с создает файл с настройками клиента, нужно его удалить
@@ -356,12 +349,10 @@ class Command(abc.ABC):
                 if line.find(b'7fffffff') != -1:
                     new_line = line_for_write.replace(chr(10), '')
                     if new_line != '':
-                        # noinspection PyUnboundLocalVariable
                         module_file.write(new_line)
                     break
 
                 if line_for_write != '':
-                    # noinspection PyUnboundLocalVariable
                     module_file.write(line_for_write)
 
                 line_read = line.decode('utf8')
@@ -450,7 +441,6 @@ class Command(abc.ABC):
         if not self.arguments.external_log:
             common.delete_file(self.arguments.log)
 
-    # noinspection PyMethodMayBeStatic
     def _get_port_for_agent(self):
 
         port_agent = 1543
@@ -520,7 +510,6 @@ class StartAgent(Command):
 
         self.debug('run1CAgent %s', call_string)
 
-        # noinspection PyPep8,PyBroadException
         try:
             subprocess.Popen('start "no wait" ' + call_string, shell=True)
         except Exception as exception:

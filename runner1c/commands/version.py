@@ -10,7 +10,6 @@ class VersionParser(runner1c.parser.Parser):
     def description(self):
         return 'версия программы'
 
-    # noinspection PyUnusedLocal,PyMethodMayBeStatic
     def create_handler(self, **kwargs):
         return Version(**kwargs)
 

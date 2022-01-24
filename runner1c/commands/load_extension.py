@@ -10,7 +10,6 @@ class LoadExtensionParser(runner1c.parser.Parser):
     def description(self):
         return 'загрузка расширения из исходников'
 
-    # noinspection PyMethodMayBeStatic
     def create_handler(self, **kwargs):
         return LoadExtension(**kwargs)
 

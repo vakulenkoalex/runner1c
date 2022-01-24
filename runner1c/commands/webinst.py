@@ -11,7 +11,6 @@ class WebinstParser(runner1c.parser.Parser):
     def description(self):
         return 'публикация базы на веб-сервере'
 
-    # noinspection PyMethodMayBeStatic
     def create_handler(self, **kwargs):
         return Webinst(**kwargs)
 

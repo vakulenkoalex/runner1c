@@ -14,7 +14,6 @@ class DumpExtensionsParser(runner1c.parser.Parser):
     def description(self):
         return 'выгрузка расширений конфигурации на исходники'
 
-    # noinspection PyMethodMayBeStatic
     def create_handler(self, **kwargs):
         return DumpExtensions(**kwargs)
 

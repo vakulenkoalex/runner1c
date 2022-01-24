@@ -11,7 +11,6 @@ class LoadConfigParser(runner1c.parser.Parser):
     def description(self):
         return 'загрузка конфигурации из исходников'
 
-    # noinspection PyMethodMayBeStatic
     def create_handler(self, **kwargs):
         return LoadConfig(**kwargs)
 
@@ -20,7 +19,10 @@ class LoadConfigParser(runner1c.parser.Parser):
         self._parser.add_argument('--folder', required=True, help='каталог, содержащий исходники конфигурации')
         self._parser.add_argument('--update', action='store_const', const=True, help='обновление конфигурации '
                                                                                      'базы данных')
-        self._parser.add_argument('--agent', action='store_const', const=True, help='запускать конфигуратор в режиме агента')
+        self._parser.add_argument('--agent',
+                                  action='store_const',
+                                  const=True,
+                                  help='запускать конфигуратор в режиме агента')
 
 
 class LoadConfig(runner1c.command.Command):
