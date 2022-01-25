@@ -52,9 +52,12 @@ class Command(abc.ABC):
 
         self._need_close_agent = False
         self._agent_started = False
-        self._cmd = []
         self._logger = logging.getLogger(self.name)
         self._agent_folder = ''
+
+        self._program_1c_arguments = []
+        self._program_1c = ''
+        self._version_1c = ''
 
         if self._mode == Mode.DESIGNER:
             self._set_designer()
@@ -62,8 +65,6 @@ class Command(abc.ABC):
             self._set_enterprise()
         elif self._mode == Mode.CREATE:
             self._set_create_base()
-        else:
-            self._add_argument_path_to_1c()
 
         if agent_channel is not None:
             self._client, self._channel = agent_channel
@@ -116,7 +117,6 @@ class Command(abc.ABC):
         return_code = StartAgent(arguments=p_agent).execute()
         if not runner1c.exit_code.success_result(return_code):
             raise Exception('Failed start agent')
-        time.sleep(3)
 
         self._agent_started = True
         self._need_close_agent = True
@@ -194,20 +194,21 @@ class Command(abc.ABC):
 
         # при старте агента 1с создает файл с настройками клиента, нужно его удалить
         common.delete_file(os.path.join(self._agent_folder, 'agentbasedir.json'))
+        #common.delete_file(os.path.join(os.getcwd(), '1cv8u.pfl'))
 
     def get_agent_channel(self):
         return self._client, self._channel
 
     def add_argument(self, string):
-        self._cmd.append(string)
+        self._program_1c_arguments.append(string)
 
-    def get_string_for_call(self):
+    def get_program_arguments(self):
         self._set_log_result()
 
         if getattr(self.arguments, 'connection', False):
             self._set_connection_string()
 
-        return ' '.join(self._cmd).format(**vars(self.arguments))
+        return ' '.join(self._program_1c_arguments).format(**vars(self.arguments))
 
     def version_1c_greater(self, check_version):
 
@@ -217,7 +218,7 @@ class Command(abc.ABC):
         if len(part_check_version) < 4:
             part_check_version.append('0')
 
-        part_current_version = self.arguments.version_1c.split('.')
+        part_current_version = self._version_1c.split('.')
 
         for element in range(4):
             if int(part_current_version[element]) < int(part_check_version[element]):
@@ -226,15 +227,17 @@ class Command(abc.ABC):
 
         return result
 
+    def get_program(self):
+        return self._program_1c
+
     def _start(self):
-        call_string = self.get_string_for_call()
+        call_string = self.get_program() + ' ' + self.get_program_arguments()
         self.debug('run1C %s', call_string)
 
-        if getattr(self.arguments, 'timeout', 0) > 0:
-            result_call = subprocess.call(call_string, timeout=self.arguments.timeout)
-        else:
-            result_call = subprocess.call(call_string)
-
+        timeout = getattr(self.arguments, 'timeout', 0)
+        if timeout == 0:
+            timeout = None
+        result_call = subprocess.call(call_string, timeout=timeout)
         self.debug('result run1C = %s', result_call)
 
         if os.path.exists(self.arguments.log):
@@ -251,9 +254,6 @@ class Command(abc.ABC):
 
         return return_code
 
-    def _add_argument_path_to_1c(self):
-        self.add_argument('"{path_1c_exe}"')
-
     def _add_argument_result(self):
         self.add_argument('/DumpResult "{result}"')
 
@@ -268,7 +268,6 @@ class Command(abc.ABC):
             self.add_argument('/P "{password}"')
 
     def _set_mode(self, mode):
-        self._add_argument_path_to_1c()
         self.add_argument(mode.value)
         self.add_argument('{connection_string}')
         self.add_argument('/Out "{log}"')
@@ -426,13 +425,12 @@ class Command(abc.ABC):
         else:
             file_name_1c = '1cv8.exe'
 
-        setattr(self.arguments, 'path_1c_exe', os.path.join(path, file_name_1c))
-
-        if not os.path.isfile(self.arguments.path_1c_exe):
+        self._program_1c = os.path.join(path, file_name_1c)
+        if not os.path.isfile(self._program_1c):
             raise Exception('Path to 1cv8.exe not found')
 
-        path_1c_element = self.arguments.path_1c_exe.split(os.sep)
-        setattr(self.arguments, 'version_1c', path_1c_element[len(path_1c_element) - 3])
+        path_1c_element = self._program_1c.split(os.sep)
+        self._version_1c = path_1c_element[-3]
 
     def _delete_temp_files(self):
         if not self.arguments.external_result:
@@ -505,17 +503,31 @@ class StartAgent(Command):
         return runner1c.exit_code.EXIT_CODE.done
 
     def execute(self):
-        call_string = self.get_string_for_call()
         return_code = self.default_result
 
-        self.debug('run1CAgent %s', call_string)
+        program_arguments = self.get_program_arguments()
+        self.debug('get_program_arguments %s', program_arguments)
 
+        file_parameters = tempfile.mktemp('.txt')
+        with open(file_parameters, mode='w', encoding='utf8') as file_parameters_stream:
+            file_parameters_stream.write(program_arguments)
+        file_parameters_stream.close()
+
+        cmd = self.get_program()
+        stdin = '/@ ' + file_parameters
+        self.debug('Popen %s %s', cmd, stdin)
+
+        # открываем без ожидания завершения
+        # закрывается после завершения программы безусловно
         try:
-            subprocess.Popen('start "no wait" ' + call_string, shell=True)
+            subprocess.Popen([cmd, stdin])
         except Exception as exception:
             self.error(exception)
             return_code = runner1c.exit_code.EXIT_CODE.error
 
         self.debug('exit code = %s', return_code)
+
+        time.sleep(3)
+        common.delete_file(file_parameters)
 
         return return_code

@@ -43,20 +43,20 @@ async def start_enterprise(self, loop):
                                                                     'tools',
                                                                     'epf',
                                                                     'CloseAfterUpdate.epf')))
-
     path_to_fixtures = os.path.join(self.arguments.folder, 'build', 'spec', 'fixtures')
     if os.path.exists(path_to_fixtures):
         setattr(p_start, 'options', path_to_fixtures)
+    command_start = runner1c.commands.start.Start(arguments=p_start)
 
-    call_string = runner1c.commands.start.Start(arguments=p_start).get_string_for_call()
-    program, parameters = call_string.split(' ENTERPRISE')
+    program_arguments = command_start.get_program_arguments()
+    self.debug('get_program_arguments %s', program_arguments)
 
     file_parameters = tempfile.mktemp('.txt')
     with open(file_parameters, mode='w', encoding='utf8') as file_parameters_stream:
-        file_parameters_stream.write('ENTERPRISE ' + parameters)
+        file_parameters_stream.write(program_arguments)
     file_parameters_stream.close()
 
-    cmd = program.replace('"', '')
+    cmd = command_start.get_program()
     stdin = '/@ ' + file_parameters
 
     self.debug('create_subprocess_exec %s %s', cmd, stdin)
