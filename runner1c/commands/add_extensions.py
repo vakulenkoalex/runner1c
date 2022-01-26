@@ -45,6 +45,11 @@ class AddExtensions(runner1c.command.Command):
                 return_code = self.send_to_agent(command.format(os.path.join(self.arguments.folder, name), name))
                 if not exit_code.success_result(return_code):
                     break
+                if self.version_1c_greater('8.3.14'):
+                    command = 'config extensions properties set --extension {} --safe-mode no --unsafe-action-protection no'
+                    return_code = self.send_to_agent(command.format(name))
+                    if not exit_code.success_result(return_code):
+                        break
                 command = 'config update-db-cfg --extension {}'
                 return_code = self.send_to_agent(command.format(name))
                 if not exit_code.success_result(return_code):
@@ -55,7 +60,7 @@ class AddExtensions(runner1c.command.Command):
         finally:
             self.close_agent()
 
-        if exit_code.success_result(return_code):
+        if not self.version_1c_greater('8.3.14') and exit_code.success_result(return_code):
             p_start = runner1c.command.EmptyParameters(self.arguments)
             setattr(p_start, 'connection', self.arguments.connection)
             setattr(p_start, 'epf', common.get_path_to_project(os.path.join('runner1c',
