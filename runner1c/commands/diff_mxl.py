@@ -14,7 +14,6 @@ class DiffMxlParser(runner1c.parser.Parser):
     def description(self):
         return 'показать расхождение в mxl файлах'
 
-    # noinspection PyMethodMayBeStatic
     def create_handler(self, **kwargs):
         return DiffMxl(**kwargs)
 

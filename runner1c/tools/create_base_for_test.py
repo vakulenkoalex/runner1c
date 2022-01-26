@@ -1,10 +1,10 @@
 import os
+import re
 import shutil
 import tkinter
 import tkinter.filedialog as filedialog
 import tkinter.messagebox as messagebox
 from configparser import ConfigParser
-import re
 
 import runner1c
 
@@ -21,7 +21,13 @@ def _ask_file_dir(element, title, open_file):
         return
 
     _delete_entry_value(element)
-    _set_entry_value(element, path)
+
+    if open_file:
+        path_for_element = path[0]
+    else:
+        path_for_element = path
+
+    _set_entry_value(element, path_for_element.replace('/', '\\'))
 
 
 def _place_ask_directory(label_text, position, open_file=False):
@@ -69,7 +75,7 @@ def _radiobutton_change(repo_name):
     _delete_entry_value(PLATFORM)
     _delete_entry_value(REPO)
     THICK_CLIENT.set(False)
-    # noinspection PyPep8,PyBroadException
+
     try:
         _set_entry_value(BASE, CONFIG.get(repo_name, 'base'))
         _set_entry_value(PLATFORM, CONFIG.get(repo_name, 'platform'))
@@ -105,7 +111,7 @@ def _save_parameters(repo_path, base_path, platform_path, thick_client):
 
 
 def _save_git_path_for_base(base_path, repo_path):
-    txt_stream = open(base_path + '/GitPath.txt', 'w')
+    txt_stream = open(os.path.join(base_path, 'GitPath.txt'), 'w')
     txt_stream.write(repo_path)
     txt_stream.close()
 
@@ -114,8 +120,8 @@ def _get_extension_name_from_file(file_path):
     path_for_search = file_path
 
     if os.path.splitext(file_path)[1] == '.epf':
-        path_for_search = file_path.replace('build/', '')
-        path_for_search = path_for_search.replace('.epf', '/Ext/ObjectModule.bsl')
+        path_for_search = file_path.replace('build\\', '')
+        path_for_search = path_for_search.replace('.epf', '\\Ext\\ObjectModule.bsl')
 
     array = []
     with open(path_for_search, mode='r', encoding='utf-8') as file:
@@ -127,10 +133,12 @@ def _get_extension_name_from_file(file_path):
 
 
 def _folder_for_cfe_exist(repo_path):
-    return os.path.exists(repo_path + '\\lib\\ext')
+    return os.path.exists(os.path.join(repo_path, 'lib', 'ext'))
 
 
 def _create_base_click():
+    extension_name = None
+
     if not BASE.get():
         messagebox.showerror("Ошибка", 'Не указан путь к базе')
         return
@@ -150,29 +158,28 @@ def _create_base_click():
             return
 
     repo_path = REPO.get()
-    repo_path_win = repo_path.replace('/', '\\')
 
     if os.path.exists(BASE.get()):
         shutil.rmtree(BASE.get(), True)
     os.makedirs(BASE.get())
 
     arguments = ['--debug', 'base_for_test', '--path', PLATFORM.get(), '--connection', 'File=' + BASE.get(),
-                 '--folder', repo_path_win]
+                 '--folder', repo_path]
     if CREATE_EPF.get():
         arguments.append('--create_epf')
     if THICK_CLIENT.get():
         arguments.append('--thick')
-    if _folder_for_cfe_exist(repo_path_win):
-         arguments.append('--create_cfe')
+    if _folder_for_cfe_exist(repo_path):
+        arguments.append('--create_cfe')
 
     _save_parameters(repo_path, BASE.get(), PLATFORM.get(), THICK_CLIENT.get())
-    _save_git_path_for_base(BASE.get(), repo_path_win)
+    _save_git_path_for_base(BASE.get(), repo_path)
 
     if runner1c.core.main(arguments) == 0:
         destroy_form = True
         if CFE_NAME.get():
             arguments = ['--debug', 'add_extensions', '--silent', '--path', PLATFORM.get(), '--connection',
-                         'File=' + BASE.get(), '--folder', os.path.join(repo_path_win, 'spec', 'ext'), '--name',
+                         'File=' + BASE.get(), '--folder', os.path.join(repo_path, 'spec', 'ext'), '--name',
                          extension_name]
             if runner1c.core.main(arguments) != 0:
                 destroy_form = False
@@ -182,7 +189,7 @@ def _create_base_click():
 
 
 def _create_form():
-    FORM.title('Создание базы для тестов')
+    FORM.title('Создание базы для тестов ' + runner1c.__version__)
     FORM.geometry('430x200')
 
     i = 0

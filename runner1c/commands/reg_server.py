@@ -11,7 +11,6 @@ class RegServerParser(runner1c.parser.Parser):
     def description(self):
         return 'регистрация "Предприятия" в качестве OLE-Automation-сервера'
 
-    # noinspection PyMethodMayBeStatic
     def create_handler(self, **kwargs):
         return RegServer(**kwargs)
 

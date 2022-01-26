@@ -1,4 +1,5 @@
 import runner1c
+import runner1c.exit_code as exit_code
 
 
 class WebinstParser(runner1c.parser.Parser):
@@ -10,7 +11,6 @@ class WebinstParser(runner1c.parser.Parser):
     def description(self):
         return 'публикация базы на веб-сервере'
 
-    # noinspection PyMethodMayBeStatic
     def create_handler(self, **kwargs):
         return Webinst(**kwargs)
 
@@ -30,4 +30,4 @@ class Webinst(runner1c.command.Command):
 
     @property
     def default_result(self):
-        return runner1c.exit_code.EXIT_CODE.done
+        return exit_code.EXIT_CODE.done

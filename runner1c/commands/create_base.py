@@ -10,7 +10,6 @@ class CreateBaseParser(runner1c.parser.Parser):
     def description(self):
         return 'создание информационной базы'
 
-    # noinspection PyMethodMayBeStatic
     def create_handler(self, **kwargs):
         return runner1c.command.CreateBase(**kwargs)
 

@@ -10,7 +10,6 @@ class AgentParser(runner1c.parser.Parser):
     def description(self):
         return 'запуск конфигуратора в режиме агента'
 
-    # noinspection PyMethodMayBeStatic
     def create_handler(self, **kwargs):
         return runner1c.command.StartAgent(**kwargs)
 

@@ -13,7 +13,6 @@ class FileParser(runner1c.parser.Parser):
     def description(self):
         return 'прочитать параметры командной строки из файла'
 
-    # noinspection PyMethodMayBeStatic
     def create_handler(self, **kwargs):
         return File(**kwargs)
 

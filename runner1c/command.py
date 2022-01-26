@@ -1,4 +1,4 @@
-# noinspection GrazieInspection
+
 """
 при переопределении декоратор теряется, поэтому нельзя переопределять run
 run вызывается, если нужна пред обработка или пост обработка, причем для этого переопределяем execute
@@ -7,7 +7,6 @@ execute используется как точка входа плагина
 
 import abc
 import copy
-import json
 import logging
 import os
 import socket
@@ -53,8 +52,13 @@ class Command(abc.ABC):
 
         self._need_close_agent = False
         self._agent_started = False
-        self._cmd = []
         self._logger = logging.getLogger(self.name)
+        self._agent_folder = ''
+        self._agent_process = None
+
+        self._program_1c_arguments = []
+        self._program_1c = ''
+        self._version_1c = ''
 
         if self._mode == Mode.DESIGNER:
             self._set_designer()
@@ -62,13 +66,12 @@ class Command(abc.ABC):
             self._set_enterprise()
         elif self._mode == Mode.CREATE:
             self._set_create_base()
-        else:
-            self._add_argument_path_to_1c()
 
-        # noinspection PyPep8
         if agent_channel is not None:
             self._client, self._channel = agent_channel
             self._agent_started = True
+
+        self._set_path_1c()
 
     @property
     def name(self):
@@ -105,27 +108,29 @@ class Command(abc.ABC):
             return
 
         port_agent = self._get_port_for_agent()
+        self._agent_folder = os.path.split(self.arguments.folder)[0]
 
         # запуск конфигуратора в режиме агента
         p_agent = runner1c.command.EmptyParameters(self.arguments)
         setattr(p_agent, 'connection', self.arguments.connection)
-        setattr(p_agent, 'folder', self.arguments.folder)
+        setattr(p_agent, 'folder', self._agent_folder)
         setattr(p_agent, 'port', port_agent)
-        StartAgent(arguments=p_agent).execute()
-        time.sleep(3)
+        agent = StartAgent(arguments=p_agent)
+        return_code = agent.execute()
+        if not runner1c.exit_code.success_result(return_code):
+            raise Exception('Failed start agent')
 
-        # noinspection PyAttributeOutsideInit
+        self._agent_process = agent.process
         self._agent_started = True
         self._need_close_agent = True
+        del agent
 
         # подключение к агенту
 
-        # noinspection PyAttributeOutsideInit
         self._client = paramiko.SSHClient()
         self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self._client.connect(hostname='127.0.0.1', username='', password='', port=port_agent)
 
-        # noinspection PyAttributeOutsideInit
         self._channel = self._client.get_transport().open_session()
         self._channel.invoke_shell()
 
@@ -140,7 +145,6 @@ class Command(abc.ABC):
             raise Exception('Failed connect to agent')
 
     def send_to_agent(self, command, wait_response=True):
-        # noinspection PyPep8
         if not self._agent_started:
             raise Exception('Agent not started')
 
@@ -157,21 +161,12 @@ class Command(abc.ABC):
 
             while not response_receive:
 
-                for line in result_sting.split(']'):
-                    if len(line.strip()) == 0:
-                        continue
-
-                    try:
-                        for element in json.loads(line + ']'):
-                            response_type = element.get('type', 'none')
-                            if response_type == 'success':
-                                result_code = runner1c.exit_code.EXIT_CODE.done
-                                response_receive = True
-                            elif response_type == 'error':
-                                result_code = runner1c.exit_code.EXIT_CODE.error
-                                response_receive = True
-                    except json.decoder.JSONDecodeError:
-                        pass
+                if result_sting.find('"type": "error"') > 0:
+                    result_code = runner1c.exit_code.EXIT_CODE.error
+                    response_receive = True
+                elif result_sting.find('"type": "success"') > 0:
+                    result_code = runner1c.exit_code.EXIT_CODE.done
+                    response_receive = True
 
                 if response_receive:
                     break
@@ -188,50 +183,74 @@ class Command(abc.ABC):
     def close_agent(self):
         if not self._need_close_agent:
             return
-        # noinspection PyPep8
         if not self._agent_started:
             return
 
         self.send_to_agent('common disconnect-ib', False)
-        self.send_to_agent('common shutdown', False)
+
+        if not self.version_1c_greater('8.3.20'):
+            self.send_to_agent('common shutdown', False)
 
         self._channel.close()
         self._client.close()
 
-        # noinspection PyAttributeOutsideInit
         self._agent_started = False
 
+        if self.version_1c_greater('8.3.20'):
+            if self._agent_process != None:
+                self._agent_process.kill()
+
         # при старте агента 1с создает файл с настройками клиента, нужно его удалить
-        common.delete_file(os.path.join(os.getcwd(), '1cv8u.pfl'))
+        common.delete_file(os.path.join(self._agent_folder, 'agentbasedir.json'))
+        #common.delete_file(os.path.join(os.getcwd(), '1cv8u.pfl'))
 
     def get_agent_channel(self):
         return self._client, self._channel
 
     def add_argument(self, string):
-        self._cmd.append(string)
+        self._program_1c_arguments.append(string)
 
-    def get_string_for_call(self):
-        self._set_path_1c()
+    def get_program_arguments(self):
         self._set_log_result()
 
         if getattr(self.arguments, 'connection', False):
             self._set_connection_string()
 
-        return ' '.join(self._cmd).format(**vars(self.arguments))
+        return ' '.join(self._program_1c_arguments).format(**vars(self.arguments))
+
+    def version_1c_greater(self, check_version):
+
+        result = True
+
+        part_check_version = check_version.split('.')
+        if len(part_check_version) < 4:
+            part_check_version.append('0')
+
+        part_current_version = self._version_1c.split('.')
+
+        for element in range(4):
+            if int(part_current_version[element]) < int(part_check_version[element]):
+                result = False
+                break
+
+        return result
+
+    def get_program(self):
+        return self._program_1c
 
     def _start(self):
-        call_string = self.get_string_for_call()
+        call_string = self.get_program() + ' ' + self.get_program_arguments()
         self.debug('run1C %s', call_string)
 
-        if getattr(self.arguments, 'timeout', 0) > 0:
-            result_call = subprocess.call(call_string, timeout=self.arguments.timeout)
-        else:
-            result_call = subprocess.call(call_string)
-
+        timeout = getattr(self.arguments, 'timeout', 0)
+        if timeout == 0:
+            timeout = None
+        result_call = subprocess.call(call_string, timeout=timeout)
         self.debug('result run1C = %s', result_call)
 
         if os.path.exists(self.arguments.log):
-            common.convert_cp1251_to_utf8(self.arguments.log)
+            if not self.version_1c_greater('8.3.18'):
+                common.convert_cp1251_to_utf8(self.arguments.log)
             if self.arguments.log.endswith('html'):
                 common.save_as_html(self.arguments.log)
 
@@ -242,9 +261,6 @@ class Command(abc.ABC):
             self._delete_temp_files()
 
         return return_code
-
-    def _add_argument_path_to_1c(self):
-        self.add_argument('"{path_1c_exe}"')
 
     def _add_argument_result(self):
         self.add_argument('/DumpResult "{result}"')
@@ -260,7 +276,6 @@ class Command(abc.ABC):
             self.add_argument('/P "{password}"')
 
     def _set_mode(self, mode):
-        self._add_argument_path_to_1c()
         self.add_argument(mode.value)
         self.add_argument('{connection_string}')
         self.add_argument('/Out "{log}"')
@@ -341,12 +356,10 @@ class Command(abc.ABC):
                 if line.find(b'7fffffff') != -1:
                     new_line = line_for_write.replace(chr(10), '')
                     if new_line != '':
-                        # noinspection PyUnboundLocalVariable
                         module_file.write(new_line)
                     break
 
                 if line_for_write != '':
-                    # noinspection PyUnboundLocalVariable
                     module_file.write(line_for_write)
 
                 line_read = line.decode('utf8')
@@ -420,10 +433,12 @@ class Command(abc.ABC):
         else:
             file_name_1c = '1cv8.exe'
 
-        setattr(self.arguments, 'path_1c_exe', os.path.join(path, file_name_1c))
-
-        if not os.path.isfile(self.arguments.path_1c_exe):
+        self._program_1c = os.path.join(path, file_name_1c)
+        if not os.path.isfile(self._program_1c):
             raise Exception('Path to 1cv8.exe not found')
+
+        path_1c_element = self._program_1c.split(os.sep)
+        self._version_1c = path_1c_element[-3]
 
     def _delete_temp_files(self):
         if not self.arguments.external_result:
@@ -432,7 +447,6 @@ class Command(abc.ABC):
         if not self.arguments.external_log:
             common.delete_file(self.arguments.log)
 
-    # noinspection PyMethodMayBeStatic
     def _get_port_for_agent(self):
 
         port_agent = 1543
@@ -487,6 +501,7 @@ class StartAgent(Command):
     def __init__(self, **kwargs):
         kwargs['mode'] = Mode.DESIGNER
         super().__init__(**kwargs)
+        process = None
 
         self.add_argument('/AgentMode /AgentSSHHostKeyAuto /AgentBaseDir "{folder}"')
         if getattr(self.arguments, 'port', False):
@@ -497,18 +512,29 @@ class StartAgent(Command):
         return runner1c.exit_code.EXIT_CODE.done
 
     def execute(self):
-        call_string = self.get_string_for_call()
         return_code = self.default_result
 
-        self.debug('run1CAgent %s', call_string)
+        program_arguments = self.get_program_arguments()
+        self.debug('get_program_arguments %s', program_arguments)
 
-        # noinspection PyPep8,PyBroadException
+        file_parameters = tempfile.mktemp('.txt')
+        with open(file_parameters, mode='w', encoding='utf8') as file_parameters_stream:
+            file_parameters_stream.write(program_arguments)
+        file_parameters_stream.close()
+
+        cmd = self.get_program()
+        stdin = '/@ ' + file_parameters
+        self.debug('Popen %s %s', cmd, stdin)
+
         try:
-            subprocess.Popen('start "no wait" ' + call_string, shell=True)
+            self.process = subprocess.Popen([cmd, stdin])
         except Exception as exception:
             self.error(exception)
             return_code = runner1c.exit_code.EXIT_CODE.error
 
         self.debug('exit code = %s', return_code)
+
+        time.sleep(3)
+        common.delete_file(file_parameters)
 
         return return_code
