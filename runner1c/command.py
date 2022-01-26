@@ -54,6 +54,7 @@ class Command(abc.ABC):
         self._agent_started = False
         self._logger = logging.getLogger(self.name)
         self._agent_folder = ''
+        self._agent_process = None
 
         self._program_1c_arguments = []
         self._program_1c = ''
@@ -114,12 +115,15 @@ class Command(abc.ABC):
         setattr(p_agent, 'connection', self.arguments.connection)
         setattr(p_agent, 'folder', self._agent_folder)
         setattr(p_agent, 'port', port_agent)
-        return_code = StartAgent(arguments=p_agent).execute()
+        agent = StartAgent(arguments=p_agent)
+        return_code = agent.execute()
         if not runner1c.exit_code.success_result(return_code):
             raise Exception('Failed start agent')
 
+        self._agent_process = agent.process
         self._agent_started = True
         self._need_close_agent = True
+        del agent
 
         # подключение к агенту
 
@@ -191,6 +195,10 @@ class Command(abc.ABC):
         self._client.close()
 
         self._agent_started = False
+
+        if self.version_1c_greater('8.3.20'):
+            if self._agent_process != None:
+                self._agent_process.kill()
 
         # при старте агента 1с создает файл с настройками клиента, нужно его удалить
         common.delete_file(os.path.join(self._agent_folder, 'agentbasedir.json'))
@@ -493,6 +501,7 @@ class StartAgent(Command):
     def __init__(self, **kwargs):
         kwargs['mode'] = Mode.DESIGNER
         super().__init__(**kwargs)
+        process = None
 
         self.add_argument('/AgentMode /AgentSSHHostKeyAuto /AgentBaseDir "{folder}"')
         if getattr(self.arguments, 'port', False):
@@ -517,10 +526,8 @@ class StartAgent(Command):
         stdin = '/@ ' + file_parameters
         self.debug('Popen %s %s', cmd, stdin)
 
-        # открываем без ожидания завершения
-        # закрывается после завершения программы безусловно
         try:
-            subprocess.Popen([cmd, stdin])
+            self.process = subprocess.Popen([cmd, stdin])
         except Exception as exception:
             self.error(exception)
             return_code = runner1c.exit_code.EXIT_CODE.error
