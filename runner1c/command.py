@@ -434,6 +434,7 @@ class Command(abc.ABC):
             file_name_1c = '1cv8.exe'
 
         self._program_1c = os.path.join(path, file_name_1c)
+        self.debug('program_1c %s', self._program_1c)
         if not os.path.isfile(self._program_1c):
             raise Exception('Path to 1cv8.exe not found')
 
