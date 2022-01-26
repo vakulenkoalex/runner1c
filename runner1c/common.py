@@ -50,11 +50,11 @@ def save_as_html(file_name):
 
 
 def delete_non_digit_element(line):
-    line_for_compare = ''
+    list = []
     for element in line:
         if element.isdigit():
-            line_for_compare = line_for_compare + element
-    return line_for_compare
+            list.append(element)
+    return ''.join(list)
 
 
 def delete_file(file_name):
