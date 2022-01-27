@@ -185,30 +185,3 @@ def test_platform_dump_config(tmpdir, runner, base_dir):
 
     version_file = os.path.join(folder, 'ConfigDumpInfo.xml')
     assert os.path.exists(version_file)
-
-    # изменяем версию справочника
-    tree = ElementTree.parse(version_file)
-    root = tree.getroot()
-    for element in root.iter():
-        if element.attrib.get('name') == 'Language.Russian':
-            element.attrib['configVersion'] = '5f1e3d878d463f46a15629df9638d63900000000'
-    tree.write(version_file, encoding='utf-8')
-
-    folder_update = str(tmpdir.join("cf_update"))
-    os.mkdir(folder_update)
-    shutil.move(version_file, os.path.join(folder_update, 'ConfigDumpInfo.xml'))
-    argument = ['--debug',
-                'dump_config',
-                '--connection',
-                'File={}'.format(base_dir),
-                '--folder',
-                folder_update,
-                '--update']
-    assert runner(argument) == 0
-
-    count_file = 0
-    for root, dirs, files in os.walk(folder_update):
-        count_file = count_file + len(files)
-    assert count_file == 2
-
-    assert os.path.exists(os.path.join(folder_update, 'Languages', 'Russian.xml'))

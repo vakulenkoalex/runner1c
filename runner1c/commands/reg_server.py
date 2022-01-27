@@ -15,7 +15,8 @@ class RegServerParser(runner1c.parser.Parser):
         return RegServer(**kwargs)
 
     def set_up(self):
-        pass
+        self._parser.add_argument('--path', help='путь куда установлена платформа 1С '
+                                                 '(пример C:\\Program Files (x86)\\1cv8\\8.3.12.1714)')
 
 
 class RegServer(runner1c.command.Command):
