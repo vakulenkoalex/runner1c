@@ -188,7 +188,7 @@ class Command(abc.ABC):
 
         self.send_to_agent('common disconnect-ib', False)
 
-        if not self.version_1c_greater('8.3.20'):
+        if not self.bug_platform('8.3.20'):
             self.send_to_agent('common shutdown', False)
 
         self._channel.close()
@@ -196,7 +196,7 @@ class Command(abc.ABC):
 
         self._agent_started = False
 
-        if self.version_1c_greater('8.3.20'):
+        if self.bug_platform('8.3.20'):
             if self._agent_process != None:
                 self._agent_process.kill()
 
@@ -238,6 +238,9 @@ class Command(abc.ABC):
 
     def get_program(self):
         return self._program_1c
+
+    def bug_platform(self, check_version):
+        return self.version_1c_greater(check_version)
 
     def _start(self):
         call_string = self.get_program() + ' ' + self.get_program_arguments()
