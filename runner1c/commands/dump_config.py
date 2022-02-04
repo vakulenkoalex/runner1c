@@ -35,11 +35,14 @@ class DumpConfig(runner1c.command.Command):
         self.add_argument('/DumpConfigToFiles "{folder}" -Format Hierarchical')
 
         if getattr(self.arguments, 'update', False):
-            self._changes = tempfile.mktemp('.txt')
-            self.add_argument('-update -force -getChanges {changes}')
 
-            setattr(self.arguments, 'changes', self._changes)
-            self.debug('changes "%s"', self._changes)
+            if not self.bug_platform('8.3.20'):
+                self._changes = tempfile.mktemp('.txt')
+                self.add_argument('-update -force -getChanges {changes}')
+                setattr(self.arguments, 'changes', self._changes)
+                self.debug('changes "%s"', self._changes)
+            else:
+                self.add_argument('-update -force')
 
     def execute(self):
         text = None
@@ -56,13 +59,14 @@ class DumpConfig(runner1c.command.Command):
         if return_code == runner1c.exit_code.EXIT_CODE.done:
             folders_for_scan = [self.arguments.folder]
             if getattr(self.arguments, 'update', False):
-                text = self._read_changes()
-                if text.find('FullDump') == -1:
-                    folders_for_scan = self._get_change_bin_forms(text)
+                if not self.bug_platform('8.3.20'):
+                    text = self._read_changes()
+                    if text.find('FullDump') == -1:
+                        folders_for_scan = self._get_change_bin_forms(text)
 
             if getattr(self.arguments, 'repair', False):
                 repair_files = True
-                if getattr(self.arguments, 'update', False):
+                if text is not None:
                     repair_files = text.find('FullDump') > 0
 
                 if repair_files:
