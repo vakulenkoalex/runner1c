@@ -33,6 +33,12 @@
 		</CheckBoxField>
 		<InputField name="ПапкаВыгрузки" id="7">
 			<DataPath>ПапкаВыгрузки</DataPath>
+			<Title>
+				<v8:item>
+					<v8:lang>ru</v8:lang>
+					<v8:content>Корень репозитория</v8:content>
+				</v8:item>
+			</Title>
 			<ChoiceButton>true</ChoiceButton>
 			<ContextMenu name="ПапкаВыгрузкиКонтекстноеМеню" id="8"/>
 			<ExtendedTooltip name="ПапкаВыгрузкиРасширеннаяПодсказка" id="31"/>
