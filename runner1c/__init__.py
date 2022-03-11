@@ -1,4 +1,4 @@
-__version__ = '0.53'
+__version__ = '0.54'
 
 from . import parser, command, core
 
