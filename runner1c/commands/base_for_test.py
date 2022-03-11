@@ -3,13 +3,12 @@ import os
 import tempfile
 
 import runner1c
-import runner1c.commands.add_extensions as add_extensions
-import runner1c.commands.load_config
+import runner1c.commands.load_config as load_config
+import runner1c.commands.load_extension as load_extension
 import runner1c.commands.start
 import runner1c.commands.sync as sync
 import runner1c.common as common
 import runner1c.exit_code as exit_code
-import runner1c.commands.load_config as load_config
 
 
 class BaseForTestParser(runner1c.parser.Parser):
@@ -103,7 +102,9 @@ class BaseForTest(runner1c.command.Command):
                         p_extensions = runner1c.command.EmptyParameters(self.arguments)
                         setattr(p_extensions, 'connection', self.arguments.connection)
                         setattr(p_extensions, 'folder', os.path.join(self.arguments.folder, 'lib', 'ext'))
-                        add_extensions.AddExtensions(arguments=p_extensions,
+                        setattr(p_extensions, 'agent', True)
+                        setattr(p_extensions, 'update', True)
+                        return_code = load_extension.LoadExtension(arguments=p_extensions,
                                                      agent_channel=self.get_agent_channel()).execute()
 
                     if getattr(self.arguments, 'create_epf', False):
