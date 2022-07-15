@@ -178,7 +178,7 @@ class Sync(runner1c.command.Command):
             with open(self._hash_file_name, mode='r', encoding='utf-8') as file_stream:
                 try:
                     files_hash = json.loads(file_stream.read())
-                except:
+                except json.JSONDecodeError:
                     pass
             file_stream.close()
 
