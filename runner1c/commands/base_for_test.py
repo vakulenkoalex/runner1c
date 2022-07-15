@@ -33,7 +33,7 @@ class BaseForTestParser(runner1c.parser.Parser):
                                                                                          'репозитория')
 
 
-async def start_enterprise(self, loop):
+async def start_enterprise(self, loop, path_to_fixtures):
     p_start = runner1c.command.EmptyParameters(self.arguments)
     setattr(p_start, 'connection', self.arguments.connection)
     setattr(p_start, 'thick', self.arguments.thick)
@@ -42,7 +42,7 @@ async def start_enterprise(self, loop):
                                                                     'tools',
                                                                     'epf',
                                                                     'CloseAfterUpdate.epf')))
-    path_to_fixtures = os.path.join(self.arguments.folder, 'build', 'spec', 'fixtures')
+
     if os.path.exists(path_to_fixtures):
         setattr(p_start, 'options', path_to_fixtures)
     command_start = runner1c.commands.start.Start(arguments=p_start)
@@ -66,18 +66,25 @@ async def start_enterprise(self, loop):
     common.delete_file(file_parameters)
 
 
-async def start_designer(self):
+async def start_designer(self, exclude):
     p_sync = runner1c.command.EmptyParameters(self.arguments)
     setattr(p_sync, 'connection', self.arguments.connection)
     setattr(p_sync, 'folder', self.arguments.folder)
     setattr(p_sync, 'create', True)
-    setattr(p_sync, 'exclude', os.path.join(p_sync.folder, 'spec', 'fixtures'))
+    setattr(p_sync, 'exclude', exclude)
     sync.Sync(arguments=p_sync, agent_channel=self.get_agent_channel()).execute()
 
 
 class BaseForTest(runner1c.command.Command):
     def execute(self):
-        folder_for_config_src = 'cf'
+
+        config_src = os.path.join(self.arguments.folder, 'cf')
+        lib_src = 'lib'
+        ext_src = os.path.join(self.arguments.folder, lib_src, 'ext')
+        fixtures_src = os.path.join('spec', 'fixtures')
+        epf_src_before_async = ','.join([os.path.join(self.arguments.folder, fixtures_src),
+                                          os.path.join(self.arguments.folder, lib_src)])
+        path_to_fixtures = os.path.join(self.arguments.folder, 'build', fixtures_src)
 
         p_create = runner1c.command.EmptyParameters(self.arguments)
         setattr(p_create, 'connection', self.arguments.connection)
@@ -90,7 +97,7 @@ class BaseForTest(runner1c.command.Command):
             try:
                 p_load_config = runner1c.command.EmptyParameters(self.arguments)
                 setattr(p_load_config, 'connection', self.arguments.connection)
-                setattr(p_load_config, 'folder', os.path.join(self.arguments.folder, folder_for_config_src))
+                setattr(p_load_config, 'folder', config_src)
                 setattr(p_load_config, 'agent', True)
                 setattr(p_load_config, 'update', True)
                 return_code = load_config.LoadConfig(arguments=p_load_config,
@@ -101,7 +108,7 @@ class BaseForTest(runner1c.command.Command):
                     if getattr(self.arguments, 'create_cfe', False):
                         p_extensions = runner1c.command.EmptyParameters(self.arguments)
                         setattr(p_extensions, 'connection', self.arguments.connection)
-                        setattr(p_extensions, 'folder', os.path.join(self.arguments.folder, 'lib', 'ext'))
+                        setattr(p_extensions, 'folder', ext_src)
                         setattr(p_extensions, 'agent', True)
                         setattr(p_extensions, 'update', True)
                         return_code = load_extension.LoadExtension(arguments=p_extensions,
@@ -112,7 +119,7 @@ class BaseForTest(runner1c.command.Command):
                         setattr(p_sync, 'connection', self.arguments.connection)
                         setattr(p_sync, 'folder', self.arguments.folder)
                         setattr(p_sync, 'create', True)
-                        setattr(p_sync, 'include', os.path.join(p_sync.folder, 'spec', 'fixtures'))
+                        setattr(p_sync, 'include', epf_src_before_async)
                         return_code = sync.Sync(arguments=p_sync, agent_channel=self.get_agent_channel()).execute()
 
                     if exit_code.success_result(return_code):
@@ -121,8 +128,8 @@ class BaseForTest(runner1c.command.Command):
 
                         tasks = []
                         if getattr(self.arguments, 'create_epf', False):
-                            tasks.append(start_designer(self))
-                        tasks.append(start_enterprise(self, loop))
+                            tasks.append(start_designer(self, epf_src_before_async))
+                        tasks.append(start_enterprise(self, loop, path_to_fixtures))
 
                         loop.run_until_complete(asyncio.wait(tasks))
                         loop.close()

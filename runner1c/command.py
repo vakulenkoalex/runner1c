@@ -196,9 +196,8 @@ class Command(abc.ABC):
 
         self._agent_started = False
 
-        if self.bug_platform('8.3.20'):
-            if self._agent_process != None:
-                self._agent_process.kill()
+        if self.bug_platform('8.3.20') and self._agent_process is not None:
+            self._agent_process.kill()
 
         # при старте агента 1с создает служебные файлы, иногда за собой не убирает
         common.delete_file(os.path.join(self._agent_folder, 'agentbasedir.json'))
@@ -506,6 +505,7 @@ class StartAgent(Command):
     def __init__(self, **kwargs):
         kwargs['mode'] = Mode.DESIGNER
         super().__init__(**kwargs)
+        # noinspection PyUnusedLocal
         process = None
 
         self.add_argument('/AgentMode /AgentSSHHostKeyAuto /AgentBaseDir "{folder}"')

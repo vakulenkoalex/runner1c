@@ -58,11 +58,10 @@ class DumpConfig(runner1c.command.Command):
 
         if return_code == runner1c.exit_code.EXIT_CODE.done:
             folders_for_scan = [self.arguments.folder]
-            if getattr(self.arguments, 'update', False):
-                if not self.bug_platform('8.3.20'):
-                    text = self._read_changes()
-                    if text.find('FullDump') == -1:
-                        folders_for_scan = self._get_change_bin_forms(text)
+            if getattr(self.arguments, 'update', False) and not self.bug_platform('8.3.20'):
+                text = self._read_changes()
+                if text.find('FullDump') == -1:
+                    folders_for_scan = self._get_change_bin_forms(text)
 
             if getattr(self.arguments, 'repair', False):
                 repair_files = True

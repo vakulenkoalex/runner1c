@@ -4,7 +4,7 @@ import shutil
 import tkinter
 import tkinter.filedialog as filedialog
 import tkinter.messagebox as messagebox
-from configparser import ConfigParser
+from configparser import ConfigParser, NoOptionError
 
 import runner1c
 
@@ -81,7 +81,7 @@ def _radiobutton_change(repo_name):
         _set_entry_value(PLATFORM, CONFIG.get(repo_name, 'platform'))
         _set_entry_value(REPO, CONFIG.get(repo_name, 'repo'))
         THICK_CLIENT.set(CONFIG.get(repo_name, 'thick_client'))
-    except:
+    except NoOptionError:
         pass
 
 

@@ -3,8 +3,6 @@
 
 import distutils.dir_util as copy_tree
 import os.path
-import shutil
-import xml.etree.ElementTree as ElementTree
 
 import pytest
 
