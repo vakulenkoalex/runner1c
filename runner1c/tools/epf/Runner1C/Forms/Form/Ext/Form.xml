@@ -19,17 +19,17 @@
 				<Event name="OnChange">ТипОперацииПриИзменении</Event>
 			</Events>
 		</InputField>
-		<CheckBoxField name="ВыгружатьРасширенияВПапкуLib" id="38">
-			<DataPath>ВыгружатьРасширенияВПапкуExt</DataPath>
+		<CheckBoxField name="ВыгружатьРасширенияВSpec" id="38">
+			<DataPath>ВыгружатьРасширенияВSpec</DataPath>
 			<Title>
 				<v8:item>
 					<v8:lang>ru</v8:lang>
-					<v8:content>Выгружать в ext</v8:content>
+					<v8:content>Выгружать в spec</v8:content>
 				</v8:item>
 			</Title>
 			<CheckBoxType>Auto</CheckBoxType>
-			<ContextMenu name="ВыгружатьРасширенияВПапкуLibКонтекстноеМеню" id="39"/>
-			<ExtendedTooltip name="ВыгружатьРасширенияВПапкуLibРасширеннаяПодсказка" id="40"/>
+			<ContextMenu name="ВыгружатьРасширенияВSpecКонтекстноеМеню" id="39"/>
+			<ExtendedTooltip name="ВыгружатьРасширенияВSpecРасширеннаяПодсказка" id="40"/>
 		</CheckBoxField>
 		<InputField name="ПапкаВыгрузки" id="7">
 			<DataPath>ПапкаВыгрузки</DataPath>
@@ -240,11 +240,11 @@
 				</v8:StringQualifiers>
 			</Type>
 		</Attribute>
-		<Attribute name="ВыгружатьРасширенияВПапкуExt" id="11">
+		<Attribute name="ВыгружатьРасширенияВSpec" id="11">
 			<Title>
 				<v8:item>
 					<v8:lang>ru</v8:lang>
-					<v8:content>Выгружать расширения в папку ext</v8:content>
+					<v8:content>Выгружать расширения в spec</v8:content>
 				</v8:item>
 			</Title>
 			<Type>
