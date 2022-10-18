@@ -33,7 +33,7 @@ class BaseForTestParser(runner1c.parser.Parser):
                                                                                          'репозитория')
 
 
-async def start_enterprise(self, loop, path_to_fixtures):
+async def start_enterprise(self, path_to_fixtures):
     p_start = runner1c.command.EmptyParameters(self.arguments)
     setattr(p_start, 'connection', self.arguments.connection)
     setattr(p_start, 'thick', self.arguments.thick)
@@ -59,7 +59,7 @@ async def start_enterprise(self, loop, path_to_fixtures):
     stdin = '/@ ' + file_parameters
 
     self.debug('create_subprocess_exec %s %s', cmd, stdin)
-    process = await asyncio.create_subprocess_exec(cmd, stdin, loop=loop)
+    process = await asyncio.create_subprocess_exec(cmd, stdin)
 
     await process.wait()
 
@@ -129,7 +129,7 @@ class BaseForTest(runner1c.command.Command):
                         tasks = []
                         if getattr(self.arguments, 'create_epf', False):
                             tasks.append(start_designer(self, epf_src_before_async))
-                        tasks.append(start_enterprise(self, loop, path_to_fixtures))
+                        tasks.append(start_enterprise(self, path_to_fixtures))
 
                         loop.run_until_complete(asyncio.wait(tasks))
                         loop.close()
