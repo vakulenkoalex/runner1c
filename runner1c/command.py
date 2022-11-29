@@ -54,6 +54,7 @@ class Command(abc.ABC):
         self._client = None
         self._channel = None
         self._connect_to_agent = False
+        self._need_close_agent = False
         agent_channel = kwargs.get('agent_channel', None)
         if agent_channel is not None:
             self._client, self._channel = agent_channel
@@ -107,6 +108,11 @@ class Command(abc.ABC):
         self._logger.error(msg, *args)
 
     def start_agent(self):
+        if self._connect_to_agent:
+            return
+
+        self._need_close_agent = True
+
         self._agent_port = self._get_port_for_agent()
         self._agent_folder = os.path.split(self.arguments.folder)[0]
 
@@ -196,6 +202,9 @@ class Command(abc.ABC):
         self._connect_to_agent = False
 
     def close_agent(self):
+        if not self._need_close_agent:
+            return
+
         if not self._connect_to_agent:
             self.connect_to_agent()
 
