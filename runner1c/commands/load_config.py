@@ -42,8 +42,6 @@ class LoadConfig(runner1c.command.Command):
             return self.run()
         else:
 
-            self.connect_to_agent()
-
             try:
                 command = 'config load-config-from-files --dir "{}" --update-config-dump-info'
                 return_code = self.send_to_agent(command.format(self.arguments.folder))
