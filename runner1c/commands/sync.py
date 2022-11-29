@@ -57,6 +57,7 @@ class Sync(runner1c.command.Command):
 
         if getattr(self.arguments, 'create', True):
 
+            self.start_agent()
             self.connect_to_agent()
 
             try:
@@ -75,6 +76,8 @@ class Sync(runner1c.command.Command):
             except Exception as exception:
                 self.error(exception)
                 result_code = runner1c.exit_code.EXIT_CODE.error
+            finally:
+                self.close_agent()
 
         else:
 
