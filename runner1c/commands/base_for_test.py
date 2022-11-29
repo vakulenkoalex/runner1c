@@ -56,6 +56,7 @@ def start_designer(arguments, agent_port, exclude_epf):
     setattr(p_sync, 'create', True)
     setattr(p_sync, 'exclude', exclude_epf)
     command = sync.Sync(arguments=p_sync, agent_port=agent_port)
+    command.connect_to_agent()
     return_code = command.execute()
     command.disconnect_from_agent()
     if not exit_code.success_result(return_code):
