@@ -46,13 +46,20 @@ def create_base_if_necessary(func):
 
 class Command(abc.ABC):
     def __init__(self, **kwargs):
+        self._logger = logging.getLogger(self.name)
+
         self.arguments = copy.copy(kwargs['arguments'])
         self._mode = kwargs.get('mode', None)
-        agent_channel = kwargs.get('agent_channel', None)
 
-        self._need_close_agent = False
-        self._agent_started = False
-        self._logger = logging.getLogger(self.name)
+        self._client = None
+        self._channel = None
+        self._connect_to_agent = False
+        agent_channel = kwargs.get('agent_channel', None)
+        if agent_channel is not None:
+            self._client, self._channel = agent_channel
+            self._connect_to_agent = True
+
+        self._agent_port = kwargs.get('agent_port', None)
         self._agent_folder = ''
         self._agent_process = None
 
@@ -66,10 +73,6 @@ class Command(abc.ABC):
             self._set_enterprise()
         elif self._mode == Mode.CREATE:
             self._set_create_base()
-
-        if agent_channel is not None:
-            self._client, self._channel = agent_channel
-            self._agent_started = True
 
         self._set_path_1c()
 
@@ -104,35 +107,34 @@ class Command(abc.ABC):
         self._logger.error(msg, *args)
 
     def start_agent(self):
-        if self._agent_started:
-            return
-
-        port_agent = self._get_port_for_agent()
+        self._agent_port = self._get_port_for_agent()
         self._agent_folder = os.path.split(self.arguments.folder)[0]
 
         # запуск конфигуратора в режиме агента
         p_agent = runner1c.command.EmptyParameters(self.arguments)
         setattr(p_agent, 'connection', self.arguments.connection)
         setattr(p_agent, 'folder', self._agent_folder)
-        setattr(p_agent, 'port', port_agent)
+        setattr(p_agent, 'port', self._agent_port)
         agent = StartAgent(arguments=p_agent)
         return_code = agent.execute()
         if not runner1c.exit_code.success_result(return_code):
             raise Exception('Failed start agent')
 
         self._agent_process = agent.process
-        self._agent_started = True
-        self._need_close_agent = True
         del agent
 
-        # подключение к агенту
+    def connect_to_agent(self):
+        if self._connect_to_agent:
+            return
 
         self._client = paramiko.SSHClient()
         self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        self._client.connect(hostname='127.0.0.1', username='', password='', port=port_agent)
+        self._client.connect(hostname='127.0.0.1', username='', password='', port=self._agent_port)
 
         self._channel = self._client.get_transport().open_session()
         self._channel.invoke_shell()
+
+        self._connect_to_agent = True
 
         # пропуск приветствия
         self._channel.recv(common.MAXIMUM_BYTES_READ)
@@ -145,8 +147,8 @@ class Command(abc.ABC):
             raise Exception('Failed connect to agent')
 
     def send_to_agent(self, command, wait_response=True):
-        if not self._agent_started:
-            raise Exception('Agent not started')
+        if not self._connect_to_agent:
+            raise Exception('No connect to agent')
 
         result_code = runner1c.exit_code.EXIT_CODE.error
         self.debug('agent send "%s"', command)
@@ -180,21 +182,23 @@ class Command(abc.ABC):
 
         return result_code
 
+    def disconnect_from_agent(self):
+        if not self._connect_to_agent:
+            return
+
+        self._channel.close()
+        self._client.close()
+
+        self._connect_to_agent = False
+
     def close_agent(self):
-        if not self._need_close_agent:
-            return
-        if not self._agent_started:
-            return
+        if not self._connect_to_agent:
+            self.connect_to_agent()
 
         self.send_to_agent('common disconnect-ib', False)
 
         if not self.bug_platform('8.3.20'):
             self.send_to_agent('common shutdown', False)
-
-        self._channel.close()
-        self._client.close()
-
-        self._agent_started = False
 
         if self.bug_platform('8.3.20') and self._agent_process is not None:
             self._agent_process.kill()
@@ -202,10 +206,12 @@ class Command(abc.ABC):
         # при старте агента 1с создает служебные файлы, иногда за собой не убирает
         common.delete_file(os.path.join(self._agent_folder, 'agentbasedir.json'))
         common.clear_folder(os.path.join(self._agent_folder, '0'))
-        #common.delete_file(os.path.join(os.getcwd(), '1cv8u.pfl'))
 
     def get_agent_channel(self):
         return self._client, self._channel
+
+    def get_agent_port(self):
+        return self._agent_port
 
     def add_argument(self, string):
         self._program_1c_arguments.append(string)
