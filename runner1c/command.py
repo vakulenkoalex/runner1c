@@ -127,6 +127,8 @@ class Command(abc.ABC):
         if self._connect_to_agent:
             return
 
+        self.debug(f'connect to agent port={self._agent_port}')
+
         self._client = paramiko.SSHClient()
         self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self._client.connect(hostname='127.0.0.1', username='', password='', port=self._agent_port)
@@ -185,6 +187,8 @@ class Command(abc.ABC):
     def disconnect_from_agent(self):
         if not self._connect_to_agent:
             return
+
+        self.debug(f'disconnect from agent port={self._agent_port}')
 
         self._channel.close()
         self._client.close()
