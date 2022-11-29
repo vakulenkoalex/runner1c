@@ -70,6 +70,7 @@ class LoadExtension(runner1c.command.Command):
         error_code = runner1c.exit_code.EXIT_CODE.error
 
         if not getattr(self.arguments, 'agent', False):
+
             if getattr(self.arguments, 'name', False) and len(extensions_name) > 1:
                 error_in_loop = False
                 for name in extensions_name:
@@ -88,42 +89,42 @@ class LoadExtension(runner1c.command.Command):
             else:
                 return self.run()
 
-        return_code = error_code
-        self.start_agent()
+        else:
 
-        try:
-            for name in extensions_name:
-                command = 'config load-files --dir "{}" --extension {}'
-                return_code = self.send_to_agent(command.format(os.path.join(self.arguments.folder, name), name))
-                if not exit_code.success_result(return_code):
-                    break
-                if self.version_1c_greater('8.3.14'):
-                    command = 'config extensions properties set --extension {} --safe-mode no --unsafe-action-protection no'
-                    return_code = self.send_to_agent(command.format(name))
-                    if not exit_code.success_result(return_code):
-                        break
-                if getattr(self.arguments, 'update', False):
-                    command = 'config update-db-cfg --extension {}'
-                    return_code = self.send_to_agent(command.format(name))
-                    if not exit_code.success_result(return_code):
-                        break
-        except Exception as exception:
-            self.error(exception)
             return_code = error_code
-        finally:
-            self.close_agent()
+            self.connect_to_agent()
 
-        if not self.version_1c_greater('8.3.14') and exit_code.success_result(return_code):
-            p_start = runner1c.command.EmptyParameters(self.arguments)
-            setattr(p_start, 'connection', self.arguments.connection)
-            setattr(p_start, 'epf', common.get_path_to_project(os.path.join('runner1c',
-                                                                            'build',
-                                                                            'tools',
-                                                                            'epf',
-                                                                            'ChangeSafeModeForExtension.epf')))
-            return_code = runner1c.commands.start.Start(arguments=p_start).execute()
+            try:
+                for name in extensions_name:
+                    command = 'config load-files --dir "{}" --extension {}'
+                    return_code = self.send_to_agent(command.format(os.path.join(self.arguments.folder, name), name))
+                    if not exit_code.success_result(return_code):
+                        break
+                    if self.version_1c_greater('8.3.14'):
+                        command = 'config extensions properties set --extension {} --safe-mode no --unsafe-action-protection no'
+                        return_code = self.send_to_agent(command.format(name))
+                        if not exit_code.success_result(return_code):
+                            break
+                    if getattr(self.arguments, 'update', False):
+                        command = 'config update-db-cfg --extension {}'
+                        return_code = self.send_to_agent(command.format(name))
+                        if not exit_code.success_result(return_code):
+                            break
+            except Exception as exception:
+                self.error(exception)
+                return_code = error_code
 
-        return return_code
+            if not self.version_1c_greater('8.3.14') and exit_code.success_result(return_code):
+                p_start = runner1c.command.EmptyParameters(self.arguments)
+                setattr(p_start, 'connection', self.arguments.connection)
+                setattr(p_start, 'epf', common.get_path_to_project(os.path.join('runner1c',
+                                                                                'build',
+                                                                                'tools',
+                                                                                'epf',
+                                                                                'ChangeSafeModeForExtension.epf')))
+                return_code = runner1c.commands.start.Start(arguments=p_start).execute()
+
+            return return_code
 
     def _get_extensions_name(self):
         if os.path.exists(self.arguments.folder):

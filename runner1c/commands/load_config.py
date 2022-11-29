@@ -40,22 +40,21 @@ class LoadConfig(runner1c.command.Command):
     def execute(self):
         if not getattr(self.arguments, 'agent', False):
             return self.run()
+        else:
 
-        self.start_agent()
+            self.connect_to_agent()
 
-        try:
-            command = 'config load-config-from-files --dir "{}" --update-config-dump-info'
-            return_code = self.send_to_agent(command.format(self.arguments.folder))
-            if exit_code.success_result(return_code):
-                return_code = self.send_to_agent('config update-db-cfg')
+            try:
+                command = 'config load-config-from-files --dir "{}" --update-config-dump-info'
+                return_code = self.send_to_agent(command.format(self.arguments.folder))
+                if exit_code.success_result(return_code):
+                    return_code = self.send_to_agent('config update-db-cfg')
 
-        except Exception as exception:
-            self.error(exception)
-            return_code = exit_code.EXIT_CODE.error
-        finally:
-            self.close_agent()
+            except Exception as exception:
+                self.error(exception)
+                return_code = exit_code.EXIT_CODE.error
 
-        return return_code
+            return return_code
 
 
 
