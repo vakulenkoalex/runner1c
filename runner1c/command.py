@@ -47,6 +47,7 @@ def create_base_if_necessary(func):
 class Command(abc.ABC):
     def __init__(self, **kwargs):
         self._logger = logging.getLogger(self.name)
+        self._logger.setLevel(logging.DEBUG)
 
         self.arguments = copy.copy(kwargs['arguments'])
         self._mode = kwargs.get('mode', None)
@@ -259,6 +260,10 @@ class Command(abc.ABC):
 
     def bug_platform(self, check_version):
         return self.version_1c_greater(check_version)
+
+    def add_logger_handler(self, handler):
+        handler.setFormatter(logging.Formatter(common.get_formatter_string()))
+        self._logger.addHandler(handler)
 
     def _start(self):
         call_string = self.get_program() + ' ' + self.get_program_arguments()
