@@ -59,10 +59,10 @@ class Command(abc.ABC):
         if agent_channel is not None:
             self._client, self._channel = agent_channel
             self._connect_to_agent = True
-
         self._agent_port = kwargs.get('agent_port', None)
         self._agent_folder = ''
         self._agent_process = None
+        self._agent_server = '127.0.0.1'
 
         self._program_1c_arguments = []
         self._program_1c = ''
@@ -137,7 +137,7 @@ class Command(abc.ABC):
 
         self._client = paramiko.SSHClient()
         self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        self._client.connect(hostname='127.0.0.1', username='', password='', port=self._agent_port)
+        self._client.connect(hostname=self._agent_server, username='', password='', port=self._agent_port)
 
         self._channel = self._client.get_transport().open_session()
         self._channel.invoke_shell()
@@ -478,7 +478,7 @@ class Command(abc.ABC):
         while port_agent < 1600:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(2)
-            result = sock.connect_ex(('127.0.0.1', port_agent))
+            result = sock.connect_ex((self._agent_server, port_agent))
             if result == 0:
                 port_agent = port_agent + 1
             else:
