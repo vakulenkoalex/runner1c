@@ -1,5 +1,8 @@
+import logging
+import multiprocessing
 import os
-from multiprocessing import Process
+from logging.handlers import QueueHandler
+from logging.handlers import QueueListener
 
 import runner1c
 import runner1c.commands.load_config as load_config
@@ -32,7 +35,7 @@ class BaseForTestParser(runner1c.parser.Parser):
                                                                                          'репозитория')
 
 
-def start_enterprise(arguments, path_to_fixtures):
+def start_enterprise(arguments, path_to_fixtures, queue=None):
     p_start = runner1c.command.EmptyParameters(arguments)
     setattr(p_start, 'connection', arguments.connection)
     setattr(p_start, 'thick', arguments.thick)
@@ -41,21 +44,26 @@ def start_enterprise(arguments, path_to_fixtures):
                                                                     'tools',
                                                                     'epf',
                                                                     'CloseAfterUpdate.epf')))
-
     if os.path.exists(path_to_fixtures):
         setattr(p_start, 'options', path_to_fixtures)
-    return_code = runner1c.commands.start.Start(arguments=p_start).execute()
+
+    command = runner1c.commands.start.Start(arguments=p_start)
+    if queue:
+        command.add_logger_handler(QueueHandler(queue))
+    return_code = command.execute()
     if not exit_code.success_result(return_code):
         raise Exception(f'Start return = {return_code}')
 
 
-def start_designer(arguments, agent_port, exclude_epf):
+def start_designer(queue, arguments, agent_port, exclude_epf):
     p_sync = runner1c.command.EmptyParameters(arguments)
     setattr(p_sync, 'connection', arguments.connection)
     setattr(p_sync, 'folder', arguments.folder)
     setattr(p_sync, 'create', True)
     setattr(p_sync, 'exclude', exclude_epf)
+
     command = sync.Sync(arguments=p_sync, agent_port=agent_port)
+    command.add_logger_handler(QueueHandler(queue))
     command.connect_to_agent()
     return_code = command.execute()
     command.disconnect_from_agent()
@@ -116,26 +124,31 @@ class BaseForTest(runner1c.command.Command):
                 if not exit_code.success_result(return_code):
                     raise Exception(f'SyncInclude return = {return_code}')
 
-            self.disconnect_from_agent()
-
             if getattr(self.arguments, 'create_epf', False):
+                self.disconnect_from_agent()
+
                 self.debug('start multiprocessing')
 
-                proc_enterprise = Process(target=start_enterprise,
-                                          args=(self.arguments, path_to_fixtures),
-                                          daemon=True)
+                stream_handler = logging.StreamHandler()
+                stream_handler.setLevel(logging.DEBUG)
+                queue = multiprocessing.Queue(-1)
+                queue_listener = QueueListener(queue, stream_handler)
+                queue_listener.start()
 
-                proc_designer = Process(target=start_designer,
-                                        args=(self.arguments, self.get_agent_port(), epf_src),
-                                        daemon=True)
+                args = (self.arguments, path_to_fixtures, queue)
+                proc_enterprise = multiprocessing.Process(target=start_enterprise, args=args, daemon=True)
+
+                args = (queue, self.arguments, self.get_agent_port(), epf_src)
+                proc_designer = multiprocessing.Process(target=start_designer, args=args, daemon=True)
 
                 proc_enterprise.start()
                 proc_designer.start()
                 proc_enterprise.join()
                 proc_designer.join()
 
-                self.debug('stop multiprocessing')
+                queue_listener.stop()
 
+                self.debug('stop multiprocessing')
             else:
                 start_enterprise(self.arguments, path_to_fixtures)
 
