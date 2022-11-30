@@ -64,7 +64,7 @@ def main(arg=None):
     arguments = parser.parse_args(list_argument)
 
     if arguments.debug:
-        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(name)19s - %(message)s')
+        logging.basicConfig(level=logging.DEBUG, format=common.get_formatter_string())
 
     logger = logging.getLogger(logger_name)
     logger.debug('start')
