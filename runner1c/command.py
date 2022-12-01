@@ -210,9 +210,10 @@ class Command(abc.ABC):
             self.connect_to_agent()
 
         self.send_to_agent('common disconnect-ib', False)
-
         if not self.bug_platform('8.3.20'):
             self.send_to_agent('common shutdown', False)
+
+        self._connect_to_agent = False
 
         if self.bug_platform('8.3.20') and self._agent_process is not None:
             self._agent_process.kill()
