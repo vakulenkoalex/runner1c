@@ -31,7 +31,9 @@ def create_base_if_necessary(func):
 
             p_create_base = runner1c.command.EmptyParameters(self.arguments)
             setattr(p_create_base, 'connection', connection)
-            return_code = CreateBase(arguments=p_create_base).execute()
+            # todo нужно копирование logger handler при multiprocessing
+            command = CreateBase(arguments=p_create_base)
+            return_code = command.execute()
 
             if runner1c.exit_code.success_result(return_code):
                 setattr(self.arguments, 'connection', connection)
@@ -46,8 +48,9 @@ def create_base_if_necessary(func):
 
 class Command(abc.ABC):
     def __init__(self, **kwargs):
-        self._logger = logging.getLogger(self.name)
-        self._logger.setLevel(logging.DEBUG)
+        self._logger = kwargs.get('logger', None)
+        if self._logger is None:
+            self._logger = logging.getLogger(self.name)
 
         self.arguments = copy.copy(kwargs['arguments'])
         self._mode = kwargs.get('mode', None)
@@ -108,7 +111,7 @@ class Command(abc.ABC):
     def error(self, msg, *args):
         self._logger.error(msg, *args)
 
-    def start_agent(self):
+    def start_agent(self, logger=None):
         if self._connect_to_agent:
             return
 
@@ -122,7 +125,8 @@ class Command(abc.ABC):
         setattr(p_agent, 'connection', self.arguments.connection)
         setattr(p_agent, 'folder', self._agent_folder)
         setattr(p_agent, 'port', self._agent_port)
-        agent = StartAgent(arguments=p_agent)
+        # todo нужно копирование logger handler при multiprocessing
+        agent = StartAgent(arguments=p_agent, logger=logger)
         return_code = agent.execute()
         if not runner1c.exit_code.success_result(return_code):
             raise Exception('Failed start agent')
@@ -261,10 +265,6 @@ class Command(abc.ABC):
 
     def bug_platform(self, check_version):
         return self.version_1c_greater(check_version)
-
-    def add_logger_handler(self, handler):
-        handler.setFormatter(logging.Formatter(common.get_formatter_string()))
-        self._logger.addHandler(handler)
 
     def _start(self):
         call_string = self.get_program() + ' ' + self.get_program_arguments()
