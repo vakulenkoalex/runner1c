@@ -29,7 +29,8 @@ node(){
                     
                     bat script: '''virtualenv venv
                                 start venv\\Scripts\\activate.bat
-                                venv\\Scripts\\pip install -e %WORKSPACE% 
+                                venv\\Scripts\\pip install -e %WORKSPACE%
+                                venv\\Scripts\\pip install -r requirements_test.txt 
                                 venv\\Scripts\\runner1c sync --create --folder %WORKSPACE%/runner1c
                                 venv\\Scripts\\pytest --log-file=pylog.txt --junitxml=junitxml.xml --cov=runner1c runner1c/tests/ --cov-report xml:cov.xml
                                 exit 0'''
