@@ -36,6 +36,50 @@ class BaseForTestParser(runner1c.parser.Parser):
                                                                                          'репозитория')
 
 
+class BaseForTest(runner1c.command.Command):
+    def execute(self):
+        fixtures_src = os.path.join('spec', 'fixtures')
+        lib_src = 'lib'
+
+        config_path = {'config_src': os.path.join(self.arguments.folder, 'cf'),
+                       'epf_src': ','.join([os.path.join(self.arguments.folder, fixtures_src),
+                                            os.path.join(self.arguments.folder, lib_src)]),
+                       'ext_src': os.path.join(self.arguments.folder, lib_src, 'ext'),
+                       'path_to_fixtures': os.path.join(self.arguments.folder, 'build', fixtures_src)}
+
+        self.start_agent()
+        agent_port = self.get_agent_port()
+        stream_handler = logging.StreamHandler()
+        if self.arguments.debug:
+            stream_handler.setLevel(logging.DEBUG)
+        queue = multiprocessing.Queue(-1)
+        queue_listener = QueueListener(queue, stream_handler)
+        queue_listener.start()
+
+        worker = []
+        self.debug('start parent multiprocessing')
+
+        base_args = (self.arguments, config_path, agent_port, queue)
+        worker.append(multiprocessing.Process(name='create_base', target=_create_base, args=base_args))
+
+        if getattr(self.arguments, 'create_epf', False):
+            test_args = (self.arguments, config_path, queue)
+            worker.append(multiprocessing.Process(name='create_test', target=_create_test, args=test_args))
+
+        for proc in worker:
+            proc.start()
+        for proc in worker:
+            proc.join()
+
+        self.debug('stop parent multiprocessing')
+
+        queue_listener.stop()
+        self.close_agent()
+
+        # todo нужен анализ результата запуска процессов
+        return runner1c.exit_code.EXIT_CODE.done
+
+
 def _get_logger(arguments, name, queue):
     logger = logging.getLogger(name)
     if arguments.debug:
@@ -168,46 +212,3 @@ def _create_epf(arguments, agent_port, config_path, queue):
     if not exit_code.success_result(return_code):
         raise Exception(f'Sync_create_epf return = {return_code}')
 
-
-class BaseForTest(runner1c.command.Command):
-    def execute(self):
-        fixtures_src = os.path.join('spec', 'fixtures')
-        lib_src = 'lib'
-
-        config_path = {'config_src': os.path.join(self.arguments.folder, 'cf'),
-                       'epf_src': ','.join([os.path.join(self.arguments.folder, fixtures_src),
-                                            os.path.join(self.arguments.folder, lib_src)]),
-                       'ext_src': os.path.join(self.arguments.folder, lib_src, 'ext'),
-                       'path_to_fixtures': os.path.join(self.arguments.folder, 'build', fixtures_src)}
-
-        self.start_agent()
-        agent_port = self.get_agent_port()
-        stream_handler = logging.StreamHandler()
-        if self.arguments.debug:
-            stream_handler.setLevel(logging.DEBUG)
-        queue = multiprocessing.Queue(-1)
-        queue_listener = QueueListener(queue, stream_handler)
-        queue_listener.start()
-
-        worker = []
-        self.debug('start parent multiprocessing')
-
-        base_args = (self.arguments, config_path, agent_port, queue)
-        worker.append(multiprocessing.Process(name='create_base', target=_create_base, args=base_args))
-
-        if getattr(self.arguments, 'create_epf', False):
-            test_args = (self.arguments, config_path, queue)
-            worker.append(multiprocessing.Process(name='create_test', target=_create_test, args=test_args))
-
-        for proc in worker:
-            proc.start()
-        for proc in worker:
-            proc.join()
-
-        self.debug('stop parent multiprocessing')
-
-        queue_listener.stop()
-        self.close_agent()
-
-        # todo нужен анализ результата запуска процессов
-        return runner1c.exit_code.EXIT_CODE.done
