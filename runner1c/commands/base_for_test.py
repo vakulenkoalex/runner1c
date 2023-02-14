@@ -14,6 +14,15 @@ import runner1c.common as common
 import runner1c.exit_code as exit_code
 
 
+class _ProcessError(Exception):
+    def __init__(self, message, code):
+        self._message = message
+        self._code = code
+
+    def __str__(self):
+        return f'{self._message} result = {self._code}'
+
+
 class BaseForTestParser(runner1c.parser.Parser):
     @property
     def name(self):
@@ -95,12 +104,12 @@ def _create_test(arguments, config_path, queue):
     temp_folder = tempfile.mkdtemp()
     p_create = runner1c.command.EmptyParameters(arguments)
     setattr(p_create, 'connection', 'File={}'.format(temp_folder))
-
     logger = _get_logger(arguments, "CreateBase_create_test", queue)
     command_create = runner1c.command.CreateBase(arguments=p_create, logger=logger)
     return_code = command_create.execute()
     if not exit_code.success_result(return_code):
-        raise Exception(f'CreateBase_create_base return = {return_code}')
+        common.clear_folder(temp_folder)
+        raise _ProcessError(logger.name, return_code)
 
     p_test = runner1c.command.EmptyParameters(arguments)
     setattr(p_test, 'connection', p_create.connection)
@@ -115,18 +124,17 @@ def _create_test(arguments, config_path, queue):
     return_code = command.execute()
     common.clear_folder(temp_folder)
     if not exit_code.success_result(return_code):
-        raise Exception(f'Sync_create_test return = {return_code}')
+        raise _ProcessError(logger.name, return_code)
 
 
 def _create_base(arguments, config_path, agent_port, queue=None):
-
     p_create = runner1c.command.EmptyParameters(arguments)
     setattr(p_create, 'connection', arguments.connection)
     logger = _get_logger(arguments, "CreateBase_create_base", queue)
     command_create = runner1c.command.CreateBase(arguments=p_create, logger=logger)
     return_code = command_create.execute()
     if not exit_code.success_result(return_code):
-        raise Exception(f'CreateBase_create_base return = {return_code}')
+        raise _ProcessError(logger.name, return_code)
 
     p_load_config = runner1c.command.EmptyParameters(arguments)
     setattr(p_load_config, 'connection', arguments.connection)
@@ -138,7 +146,7 @@ def _create_base(arguments, config_path, agent_port, queue=None):
     command_load_cf.connect_to_agent()
     return_code = command_load_cf.execute()
     if not exit_code.success_result(return_code):
-        raise Exception(f'LoadConfig_create_base return = {return_code}')
+        raise _ProcessError(logger.name, return_code)
 
     if getattr(arguments, 'create_cfe', False):
         p_extensions = runner1c.command.EmptyParameters(arguments)
@@ -152,7 +160,7 @@ def _create_base(arguments, config_path, agent_port, queue=None):
                                                         logger=logger)
         return_code = command_load_ext.execute()
         if not exit_code.success_result(return_code):
-            raise Exception(f'LoadExtension_create_base return = {return_code}')
+            raise _ProcessError(logger.name, return_code)
 
     command_load_cf.disconnect_from_agent()
     if getattr(arguments, 'create_epf', False):
@@ -189,12 +197,11 @@ def _start_enterprise(arguments, config_path, queue=None):
                                                                     'CloseAfterUpdate.epf')))
     if os.path.exists(config_path['path_to_fixtures']):
         setattr(p_start, 'options', config_path['path_to_fixtures'])
-
     logger = _get_logger(arguments, "Start_start_enterprise", queue)
     command = runner1c.commands.start.Start(arguments=p_start, logger=logger)
     return_code = command.execute()
     if not exit_code.success_result(return_code):
-        raise Exception(f'Start_start_enterprise return = {return_code}')
+        raise _ProcessError(logger.name, return_code)
 
 
 def _create_epf(arguments, agent_port, config_path, queue):
@@ -203,12 +210,10 @@ def _create_epf(arguments, agent_port, config_path, queue):
     setattr(p_sync, 'folder', arguments.folder)
     setattr(p_sync, 'create', True)
     setattr(p_sync, 'include', config_path['epf_src'])
-
     logger = _get_logger(arguments, "Sync_create_epf", queue)
     command = sync.Sync(arguments=p_sync, agent_port=agent_port, logger=logger)
     command.connect_to_agent()
     return_code = command.execute()
     command.disconnect_from_agent()
     if not exit_code.success_result(return_code):
-        raise Exception(f'Sync_create_epf return = {return_code}')
-
+        raise _ProcessError(logger.name, return_code)
