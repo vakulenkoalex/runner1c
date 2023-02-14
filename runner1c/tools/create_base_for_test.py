@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import shutil
@@ -110,10 +111,10 @@ def _save_parameters(repo_path, base_path, platform_path, thick_client):
     file.close()
 
 
-def _save_git_path_for_base(base_path, repo_path):
-    txt_stream = open(os.path.join(base_path, 'GitPath.txt'), 'w')
-    txt_stream.write(repo_path)
-    txt_stream.close()
+def _save_parameters_for_acc(base_path, repo_path, platform_path):
+    map = {'repo': repo_path, 'platform': platform_path}
+    with open(os.path.join(base_path, 'parameters.txt'), 'w') as outfile:
+        json.dump(map, outfile)
 
 
 def _get_extension_name_from_file(file_path):
@@ -173,7 +174,7 @@ def _create_base_click():
         arguments.append('--create_cfe')
 
     _save_parameters(repo_path, BASE.get(), PLATFORM.get(), THICK_CLIENT.get())
-    _save_git_path_for_base(BASE.get(), repo_path)
+    _save_parameters_for_acc(BASE.get(), repo_path, PLATFORM.get())
 
     if runner1c.core.main(arguments) == 0:
         destroy_form = True
