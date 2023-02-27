@@ -92,6 +92,8 @@ class LoadExtension(runner1c.command.Command):
         else:
 
             return_code = error_code
+            self.start_agent()
+            self.connect_to_agent()
 
             try:
                 for name in extensions_name:
