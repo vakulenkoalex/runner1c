@@ -108,7 +108,6 @@ def _create_test(arguments, config_path, queue):
     command_create = runner1c.command.CreateBase(arguments=p_create, logger=logger)
     return_code = command_create.execute()
     if not exit_code.success_result(return_code):
-        common.clear_folder(temp_folder)
         raise _ProcessError(logger.name, return_code)
 
     p_test = runner1c.command.EmptyParameters(arguments)
@@ -122,8 +121,9 @@ def _create_test(arguments, config_path, queue):
     command.start_agent(logger_agent)
     command.connect_to_agent()
     return_code = command.execute()
-    common.clear_folder(temp_folder)
-    if not exit_code.success_result(return_code):
+    if exit_code.success_result(return_code):
+        common.clear_folder(temp_folder)
+    else:
         raise _ProcessError(logger.name, return_code)
 
 
