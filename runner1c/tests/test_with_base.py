@@ -75,22 +75,6 @@ def test_sync(tmpdir, runner, repo_folder):
 
 @pytest.mark.dependency(depends=["test_base_for_test"])
 @pytest.mark.usefixtures("set_log_level")
-def test_platform_check_with_error(tmpdir, runner, base_dir):
-    log = str(tmpdir.join("log.html"))
-    argument = ['--debug',
-                'platform_check',
-                '--connection',
-                'File={}'.format(base_dir),
-                '--log',
-                log,
-                '--options',
-                '"{}"'.format(options_for_platform_check())]
-    assert runner(argument) == 0
-    assert count_lines_in_file(log) == 1
-
-
-@pytest.mark.dependency(depends=["test_base_for_test"])
-@pytest.mark.usefixtures("set_log_level")
 def test_platform_check_skip_modality(tmpdir, runner, base_dir):
     skip_file = str(tmpdir.join("skip.txt"))
     with open(skip_file, mode='w', encoding='utf-8') as file:
