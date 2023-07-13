@@ -31,12 +31,8 @@ class PlatformCheckConfig(runner1c.command.Command):
         kwargs['mode'] = runner1c.command.Mode.DESIGNER
         super().__init__(**kwargs)
 
-        options_without_commas = self.arguments.options
-        if options_without_commas.startswith('"') and options_without_commas.endswith('"'):
-            options_without_commas = options_without_commas[1:-1]
-
-        self.arguments.options1c = ' '.join(['-' + x for x in options_without_commas.split(' ')])
-        self.add_argument('/CheckConfig "{options1c}"')
+        self.arguments.options1c = ' '.join(['-' + x for x in self.arguments.options.split(' ')])
+        self.add_argument('/CheckConfig {options1c}')
 
     def execute(self):
         return_code = self.run()
@@ -49,8 +45,7 @@ class PlatformCheckConfig(runner1c.command.Command):
         if getattr(self.arguments, 'skip_object'):
             _delete_skip_object(self.arguments.skip_object, self.arguments.log)
 
-        if getattr(self.arguments, 'skip_error'):
-            _delete_skip_error(self.arguments.skip_error, self.arguments.log)
+        _delete_skip_error(self.arguments, self.arguments.log)
 
         return return_code
 
@@ -120,7 +115,8 @@ def _delete_skip_object(skip_object, log):
 
     log_file = open(log, mode='r', encoding='utf-8')
     for line in log_file:
-        add_string = True
+        if line[0] != '\t': # если строка начинается с табуляции, значит она относиться к предыдущей строке
+            add_string = True
         for error_line in skip_lines:
             if error_line.strip() in line:
                 add_string = False
@@ -133,11 +129,10 @@ def _delete_skip_object(skip_object, log):
     shutil.move(new_log_file, log)
 
 
-def _delete_skip_error(skip_error, log):
-    if not os.path.exists(skip_error):
-        return
-
-    skip_lines = _read_file_to_list(skip_error)
+def _delete_skip_error(arguments, log):
+    skip_lines = []
+    if getattr(arguments, 'skip_error'):
+        skip_lines = _read_file_to_list(arguments.skip_error)
     skip_lines.append('Ошибок не обнаружено\n')
 
     new_log_file = tempfile.mktemp('.txt')

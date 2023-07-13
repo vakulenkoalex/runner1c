@@ -58,6 +58,7 @@ class Sync(runner1c.command.Command):
         if getattr(self.arguments, 'create', True):
 
             self.start_agent()
+            self.connect_to_agent()
 
             try:
                 source_map = self._get_source()

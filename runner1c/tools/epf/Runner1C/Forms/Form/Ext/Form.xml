@@ -86,6 +86,7 @@
 			<ChildItems>
 				<CheckBoxField name="ПодменитьПутьRunner" id="41">
 					<DataPath>ПодменитьПутьRunner</DataPath>
+					<Enabled>false</Enabled>
 					<CheckBoxType>Auto</CheckBoxType>
 					<ContextMenu name="ПодменитьПутьRunnerКонтекстноеМеню" id="42"/>
 					<ExtendedTooltip name="ПодменитьПутьRunnerРасширеннаяПодсказка" id="43"/>

@@ -91,3 +91,7 @@ def convert_cp1251_to_utf8(file_name):
     new_file_stream.close()
     old_file_stream.close()
     shutil.move(new_file, file_name)
+
+
+def get_formatter_string():
+    return '%(asctime)s - %(levelname)s - %(name)19s (%(process)5d) - %(message)s'

@@ -31,7 +31,9 @@ def create_base_if_necessary(func):
 
             p_create_base = runner1c.command.EmptyParameters(self.arguments)
             setattr(p_create_base, 'connection', connection)
-            return_code = CreateBase(arguments=p_create_base).execute()
+            # todo нужно копирование logger handler при multiprocessing
+            command = CreateBase(arguments=p_create_base)
+            return_code = command.execute()
 
             if runner1c.exit_code.success_result(return_code):
                 setattr(self.arguments, 'connection', connection)
@@ -46,15 +48,25 @@ def create_base_if_necessary(func):
 
 class Command(abc.ABC):
     def __init__(self, **kwargs):
+        self._logger = kwargs.get('logger', None)
+        if self._logger is None:
+            self._logger = logging.getLogger(self.name)
+
         self.arguments = copy.copy(kwargs['arguments'])
         self._mode = kwargs.get('mode', None)
-        agent_channel = kwargs.get('agent_channel', None)
 
+        self._client = None
+        self._channel = None
+        self._connect_to_agent = False
         self._need_close_agent = False
-        self._agent_started = False
-        self._logger = logging.getLogger(self.name)
+        agent_channel = kwargs.get('agent_channel', None)
+        if agent_channel is not None:
+            self._client, self._channel = agent_channel
+            self._connect_to_agent = True
+        self._agent_port = kwargs.get('agent_port', None)
         self._agent_folder = ''
         self._agent_process = None
+        self._agent_server = '127.0.0.1'
 
         self._program_1c_arguments = []
         self._program_1c = ''
@@ -66,10 +78,6 @@ class Command(abc.ABC):
             self._set_enterprise()
         elif self._mode == Mode.CREATE:
             self._set_create_base()
-
-        if agent_channel is not None:
-            self._client, self._channel = agent_channel
-            self._agent_started = True
 
         self._set_path_1c()
 
@@ -103,36 +111,43 @@ class Command(abc.ABC):
     def error(self, msg, *args):
         self._logger.error(msg, *args)
 
-    def start_agent(self):
-        if self._agent_started:
+    def start_agent(self, logger=None):
+        if self._connect_to_agent:
             return
 
-        port_agent = self._get_port_for_agent()
+        self._need_close_agent = True
+
+        self._agent_port = self._get_port_for_agent()
         self._agent_folder = os.path.split(self.arguments.folder)[0]
 
         # запуск конфигуратора в режиме агента
         p_agent = runner1c.command.EmptyParameters(self.arguments)
         setattr(p_agent, 'connection', self.arguments.connection)
         setattr(p_agent, 'folder', self._agent_folder)
-        setattr(p_agent, 'port', port_agent)
-        agent = StartAgent(arguments=p_agent)
+        setattr(p_agent, 'port', self._agent_port)
+        # todo нужно копирование logger handler при multiprocessing
+        agent = StartAgent(arguments=p_agent, logger=logger)
         return_code = agent.execute()
         if not runner1c.exit_code.success_result(return_code):
             raise Exception('Failed start agent')
 
         self._agent_process = agent.process
-        self._agent_started = True
-        self._need_close_agent = True
         del agent
 
-        # подключение к агенту
+    def connect_to_agent(self):
+        if self._connect_to_agent:
+            return
+
+        self.debug(f'connect to agent port={self._agent_port}')
 
         self._client = paramiko.SSHClient()
         self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        self._client.connect(hostname='127.0.0.1', username='', password='', port=port_agent)
+        self._client.connect(hostname=self._agent_server, username='', password='', port=self._agent_port)
 
         self._channel = self._client.get_transport().open_session()
         self._channel.invoke_shell()
+
+        self._connect_to_agent = True
 
         # пропуск приветствия
         self._channel.recv(common.MAXIMUM_BYTES_READ)
@@ -145,8 +160,8 @@ class Command(abc.ABC):
             raise Exception('Failed connect to agent')
 
     def send_to_agent(self, command, wait_response=True):
-        if not self._agent_started:
-            raise Exception('Agent not started')
+        if not self._connect_to_agent:
+            raise Exception('No connect to agent')
 
         result_code = runner1c.exit_code.EXIT_CODE.error
         self.debug('agent send "%s"', command)
@@ -180,21 +195,29 @@ class Command(abc.ABC):
 
         return result_code
 
-    def close_agent(self):
-        if not self._need_close_agent:
-            return
-        if not self._agent_started:
+    def disconnect_from_agent(self):
+        if not self._connect_to_agent:
             return
 
-        self.send_to_agent('common disconnect-ib', False)
-
-        if not self.bug_platform('8.3.20'):
-            self.send_to_agent('common shutdown', False)
+        self.debug(f'disconnect from agent port={self._agent_port}')
 
         self._channel.close()
         self._client.close()
 
-        self._agent_started = False
+        self._connect_to_agent = False
+
+    def close_agent(self):
+        if not self._need_close_agent:
+            return
+
+        if not self._connect_to_agent:
+            self.connect_to_agent()
+
+        self.send_to_agent('common disconnect-ib', False)
+        if not self.bug_platform('8.3.20'):
+            self.send_to_agent('common shutdown', False)
+
+        self._connect_to_agent = False
 
         if self.bug_platform('8.3.20') and self._agent_process is not None:
             self._agent_process.kill()
@@ -202,10 +225,12 @@ class Command(abc.ABC):
         # при старте агента 1с создает служебные файлы, иногда за собой не убирает
         common.delete_file(os.path.join(self._agent_folder, 'agentbasedir.json'))
         common.clear_folder(os.path.join(self._agent_folder, '0'))
-        #common.delete_file(os.path.join(os.getcwd(), '1cv8u.pfl'))
 
     def get_agent_channel(self):
         return self._client, self._channel
+
+    def get_agent_port(self):
+        return self._agent_port
 
     def add_argument(self, string):
         self._program_1c_arguments.append(string)
@@ -459,7 +484,7 @@ class Command(abc.ABC):
         while port_agent < 1600:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(2)
-            result = sock.connect_ex(('127.0.0.1', port_agent))
+            result = sock.connect_ex((self._agent_server, port_agent))
             if result == 0:
                 port_agent = port_agent + 1
             else:

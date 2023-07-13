@@ -1,56 +1,17 @@
 
-def sendMsg(StartBuild){
-
-    String color
-    ArrayList message = new ArrayList()
-    message.add(String.format('%1$s - #%2$s', env.JOB_NAME.replace('%2F', '/'), env.BUILD_NUMBER))
-    String grey = '#948f8f'
-
-    if (StartBuild){
-        color = grey
-        message.add('Started')
-    }else{
-        String result = currentBuild.result.substring(0,1) + currentBuild.result.substring(1).toLowerCase()
-        message.add(String.format('%1$s after %2$s', result, currentBuild.durationString.replace(' and counting', '')))
-        switch(currentBuild.result) {
-            case "SUCCESS":
-                color = 'good'
-                break
-            case "FAILURE":
-                color = 'danger'
-                break
-            case "UNSTABLE":
-                color = 'warning'
-                break
-            default:
-                color = grey
-        }
-    }
-
-    message.add(String.format('(<%1$s|%2$s>)', env.BUILD_URL, 'Open'))
-    
-    try{
-        timeout(time: 15, unit: 'SECONDS') {
-            slackSend color: color, failOnError: true, message: message.join(' ')
-        }
-    }catch (exception){
-        showError(exception)
-    }
-
+def function 
+node('built-in') {
+    copyArtifacts filter: 'lib.groovy', fingerprintArtifacts: true, flatten: true, projectName: 'ScriptForStartBuild'
+    function = fileLoader.load('lib.groovy')
 }
-
-def showError(exception) {
-    ansiColor('xterm') {
-        echo('\u001B[31m' + exception.getMessage() + '\u001B[0m')
-    }
-}
+function.setScript(this)
 
 currentBuild.result = "SUCCESS"
 
 node(){
     timeout(time: 5) {
         timestamps {
-            sendMsg(true)
+            function.sendMsg(true)
             properties([disableConcurrentBuilds(),
                         buildDiscarder(logRotator(artifactDaysToKeepStr: '',
                                                   artifactNumToKeepStr: '',
@@ -68,7 +29,8 @@ node(){
                     
                     bat script: '''virtualenv venv
                                 start venv\\Scripts\\activate.bat
-                                venv\\Scripts\\pip install -e %WORKSPACE% 
+                                venv\\Scripts\\pip install -e %WORKSPACE%
+                                venv\\Scripts\\pip install -r requirements_test.txt 
                                 venv\\Scripts\\runner1c sync --create --folder %WORKSPACE%/runner1c
                                 venv\\Scripts\\pytest --log-file=pylog.txt --junitxml=junitxml.xml --cov=runner1c runner1c/tests/ --cov-report xml:cov.xml
                                 exit 0'''
@@ -96,10 +58,9 @@ node(){
                 }
 
             } catch (exception) {
-                showError(exception)
-                currentBuild.result = "FAILURE"
+                function.setResultAfterError(exception)
             } finally {
-                sendMsg(false)
+                function.sendMsg(false)
             }
         }
     }
