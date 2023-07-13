@@ -115,7 +115,8 @@ def _delete_skip_object(skip_object, log):
 
     log_file = open(log, mode='r', encoding='utf-8')
     for line in log_file:
-        add_string = True
+        if line[0] != '\t': # если строка начинается с табуляции, значит она относиться к предыдущей строке
+            add_string = True
         for error_line in skip_lines:
             if error_line.strip() in line:
                 add_string = False
