@@ -32,7 +32,7 @@ class PlatformCheckConfig(runner1c.command.Command):
         super().__init__(**kwargs)
 
         self.arguments.options1c = ' '.join(['-' + x for x in self.arguments.options.split(' ')])
-        self.add_argument('/CheckConfig "{options1c}"')
+        self.add_argument('/CheckConfig {options1c}')
 
     def execute(self):
         return_code = self.run()
