@@ -45,8 +45,7 @@ class PlatformCheckConfig(runner1c.command.Command):
         if getattr(self.arguments, 'skip_object'):
             _delete_skip_object(self.arguments.skip_object, self.arguments.log)
 
-        if getattr(self.arguments, 'skip_error'):
-            _delete_skip_error(self.arguments.skip_error, self.arguments.log)
+        _delete_skip_error(self.arguments, self.arguments.log)
 
         return return_code
 
@@ -129,11 +128,10 @@ def _delete_skip_object(skip_object, log):
     shutil.move(new_log_file, log)
 
 
-def _delete_skip_error(skip_error, log):
-    if not os.path.exists(skip_error):
-        return
-
-    skip_lines = _read_file_to_list(skip_error)
+def _delete_skip_error(arguments, log):
+    skip_lines = []
+    if getattr(arguments, 'skip_error'):
+        skip_lines = _read_file_to_list(arguments.skip_error)
     skip_lines.append('Ошибок не обнаружено\n')
 
     new_log_file = tempfile.mktemp('.txt')
