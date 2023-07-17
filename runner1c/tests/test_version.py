@@ -15,9 +15,8 @@ def capture(command):
     return out, err, proc.returncode
 
 
-@pytest.mark.usefixtures("set_log_level")
 def test_version_main(capsys, runner):
-    argument = ['--debug', 'version']
+    argument = ['version']
     assert runner(argument) == 0
 
     captured = capsys.readouterr()
@@ -31,10 +30,9 @@ def test_version_cli():
     assert out.decode() == runner1c.__version__ + '\r\n'
 
 
-@pytest.mark.usefixtures("set_log_level")
 def test_version_file(capsys, runner, repo_folder):
     file = os.path.join(repo_folder, 'file.json')
-    argument = ['--debug', 'file', '--params', file]
+    argument = ['file', '--params', file]
     assert runner(argument) == 0
 
     captured = capsys.readouterr()
