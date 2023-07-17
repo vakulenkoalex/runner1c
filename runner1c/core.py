@@ -1,6 +1,5 @@
 import argparse
 import inspect
-import logging
 import os
 import sys
 
@@ -62,17 +61,12 @@ def main(arg=None):
         logger_name = 'File'
 
     arguments = parser.parse_args(list_argument)
+    logger = common.get_logger(logger_name, arguments.debug)
 
-    if arguments.debug:
-        logging.basicConfig(level=logging.DEBUG, format=common.get_formatter_string())
-
-    logger = logging.getLogger(logger_name)
     logger.debug('start')
-
     handler = commands[arguments.command].create_handler(arguments=arguments)
     _check_override_methods(handler)
     return_code = handler.execute()
-
     logger.debug('exit code = %s', return_code)
 
     return return_code

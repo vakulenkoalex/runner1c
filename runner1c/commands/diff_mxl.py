@@ -38,4 +38,4 @@ class DiffMxl(runner1c.command.Command):
                                                                         'FileCompareMxl.epf')))
         setattr(p_start, 'options', options)
 
-        return runner1c.commands.start.Start(arguments=p_start).execute()
+        return runner1c.commands.start.Start(arguments=p_start, parent=self).execute()

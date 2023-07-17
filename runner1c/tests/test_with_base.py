@@ -22,15 +22,13 @@ def count_lines_in_file(file):
 
 
 @pytest.mark.dependency()
-@pytest.mark.usefixtures("set_log_level")
 def test_base_for_test(tmpdir, runner, base_dir):
     test_dir = os.path.dirname(__file__)
     repo_folder = os.path.join(test_dir, 'repo')
     epf = os.path.join(repo_folder, 'build', 'epf', 'CheckConfig.epf')
     result = str(tmpdir.join("result.txt"))
 
-    argument = ['--debug',
-                'base_for_test',
+    argument = ['base_for_test',
                 '--connection',
                 'File={}'.format(base_dir),
                 '--folder',
@@ -42,8 +40,7 @@ def test_base_for_test(tmpdir, runner, base_dir):
     assert os.path.exists(epf)
 
     # проверка базы
-    argument = ['--debug',
-                'start',
+    argument = ['start',
                 '--connection',
                 'File={}'.format(base_dir),
                 '--result',
@@ -56,15 +53,13 @@ def test_base_for_test(tmpdir, runner, base_dir):
 
 
 @pytest.mark.dependency(depends=["test_base_for_test"])
-@pytest.mark.usefixtures("set_log_level")
 def test_sync(tmpdir, runner, repo_folder):
     new_repo = str(tmpdir.join("repo"))
     old_build = os.path.join(repo_folder, 'build')
     new_build = os.path.join(new_repo, 'build')
     copy_tree.copy_tree(old_build, new_build)
 
-    argument = ['--debug',
-                'sync',
+    argument = ['sync',
                 '--folder',
                 new_repo]
     assert runner(argument) == 0
@@ -74,7 +69,6 @@ def test_sync(tmpdir, runner, repo_folder):
 
 
 @pytest.mark.dependency(depends=["test_base_for_test"])
-@pytest.mark.usefixtures("set_log_level")
 def test_platform_check_skip_modality(tmpdir, runner, base_dir):
     skip_file = str(tmpdir.join("skip.txt"))
     with open(skip_file, mode='w', encoding='utf-8') as file:
@@ -82,8 +76,7 @@ def test_platform_check_skip_modality(tmpdir, runner, base_dir):
     file.close()
 
     log = str(tmpdir.join("log.html"))
-    argument = ['--debug',
-                'platform_check',
+    argument = ['platform_check',
                 '--connection',
                 'File={}'.format(base_dir),
                 '--log',
@@ -97,7 +90,6 @@ def test_platform_check_skip_modality(tmpdir, runner, base_dir):
 
 
 @pytest.mark.dependency(depends=["test_base_for_test"])
-@pytest.mark.usefixtures("set_log_level")
 def test_platform_check_skip_object(tmpdir, runner, base_dir):
     skip_file = str(tmpdir.join("skip.txt"))
     with open(skip_file, mode='w', encoding='utf-8') as file:
@@ -105,8 +97,7 @@ def test_platform_check_skip_object(tmpdir, runner, base_dir):
     file.close()
 
     log = str(tmpdir.join("log.html"))
-    argument = ['--debug',
-                'platform_check',
+    argument = ['platform_check',
                 '--connection',
                 'File={}'.format(base_dir),
                 '--log',
@@ -120,7 +111,6 @@ def test_platform_check_skip_object(tmpdir, runner, base_dir):
 
 
 @pytest.mark.dependency(depends=["test_base_for_test"])
-@pytest.mark.usefixtures("set_log_level")
 def test_platform_check_skip_error(tmpdir, runner, base_dir):
     skip_file = str(tmpdir.join("skip.txt"))
     with open(skip_file, mode='w', encoding='utf-8') as file:
@@ -129,8 +119,7 @@ def test_platform_check_skip_error(tmpdir, runner, base_dir):
     file.close()
 
     log = str(tmpdir.join("log.html"))
-    argument = ['--debug',
-                'platform_check',
+    argument = ['platform_check',
                 '--connection',
                 'File={}'.format(base_dir),
                 '--log',
@@ -144,11 +133,9 @@ def test_platform_check_skip_error(tmpdir, runner, base_dir):
 
 
 @pytest.mark.dependency(depends=["test_base_for_test"])
-@pytest.mark.usefixtures("set_log_level")
 def test_platform_dump_config(tmpdir, runner, base_dir):
     folder = str(tmpdir.join("cf"))
-    argument = ['--debug',
-                'dump_config',
+    argument = ['dump_config',
                 '--connection',
                 'File={}'.format(base_dir),
                 '--folder',

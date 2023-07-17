@@ -1,5 +1,7 @@
+import logging
 import os
 import shutil
+import sys
 import tempfile
 from functools import partial
 
@@ -93,5 +95,19 @@ def convert_cp1251_to_utf8(file_name):
     shutil.move(new_file, file_name)
 
 
-def get_formatter_string():
-    return '%(asctime)s - %(levelname)s - %(name)19s (%(process)5d) - %(message)s'
+def get_logger(name, debug, handlers = None):
+    logger_handlers = []
+    if handlers is None:
+        logger_handlers.append(logging.StreamHandler(sys.stdout))
+    else:
+        logger_handlers = handlers
+    logger = logging.getLogger(name)
+    if debug:
+        logger.setLevel(logging.DEBUG)
+    for element in logger_handlers:
+        if debug:
+            element.setLevel(logging.DEBUG)
+        element.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(name)25s (%(process)5d) - %(message)s'))
+        logger.addHandler(element)
+
+    return logger
