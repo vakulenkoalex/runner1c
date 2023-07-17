@@ -1,7 +1,6 @@
 import logging
 import multiprocessing
 import os
-import tempfile
 from logging.handlers import QueueHandler
 from logging.handlers import QueueListener
 
