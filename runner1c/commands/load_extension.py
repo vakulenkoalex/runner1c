@@ -78,7 +78,7 @@ class LoadExtension(runner1c.command.Command):
                     setattr(p_extensions, 'connection', self.arguments.connection)
                     setattr(p_extensions, 'folder', self.arguments.folder)
                     setattr(p_extensions, 'name', name)
-                    return_code = LoadExtension(arguments=p_extensions).execute()
+                    return_code = LoadExtension(arguments=p_extensions, parent=self).execute()
                     if not runner1c.exit_code.success_result(return_code):
                         error_in_loop = True
                         break
@@ -123,7 +123,7 @@ class LoadExtension(runner1c.command.Command):
                                                                                 'tools',
                                                                                 'epf',
                                                                                 'ChangeSafeModeForExtension.epf')))
-                return_code = runner1c.commands.start.Start(arguments=p_start).execute()
+                return_code = runner1c.commands.start.Start(arguments=p_start, parent=self).execute()
 
             return return_code
 

@@ -7,7 +7,6 @@ execute используется как точка входа плагина
 
 import abc
 import copy
-import logging
 import os
 import socket
 import subprocess
@@ -19,6 +18,7 @@ import paramiko
 
 import runner1c.common as common
 import runner1c.exit_code
+import runner1c.logger
 
 
 def create_base_if_necessary(func):
@@ -31,8 +31,7 @@ def create_base_if_necessary(func):
 
             p_create_base = runner1c.command.EmptyParameters(self.arguments)
             setattr(p_create_base, 'connection', connection)
-            # todo нужно копирование logger handler при multiprocessing
-            command = CreateBase(arguments=p_create_base)
+            command = CreateBase(arguments=p_create_base, parent=self)
             return_code = command.execute()
 
             if runner1c.exit_code.success_result(return_code):
@@ -46,15 +45,27 @@ def create_base_if_necessary(func):
     return wrapper
 
 
-class Command(abc.ABC):
+class Command(runner1c.logger.Logger, abc.ABC):
     def __init__(self, **kwargs):
-        self._logger = kwargs.get('logger', None)
-        if self._logger is None:
-            self._logger = logging.getLogger(self.name)
-
+        super().__init__(**kwargs)
         self.arguments = copy.copy(kwargs['arguments'])
-        self._mode = kwargs.get('mode', None)
+        self._init_agent_mode(kwargs)
+        self._program_1c_arguments = []
+        self._program_1c = ''
+        self._version_1c = ''
+        self._init_mode(kwargs)
+        self._set_path_1c()
 
+    def _init_mode(self, kwargs):
+        self._mode = kwargs.get('mode', None)
+        if self._mode == Mode.DESIGNER:
+            self._set_designer()
+        elif self._mode == Mode.ENTERPRISE:
+            self._set_enterprise()
+        elif self._mode == Mode.CREATE:
+            self._set_create_base()
+
+    def _init_agent_mode(self, kwargs):
         self._client = None
         self._channel = None
         self._connect_to_agent = False
@@ -67,23 +78,6 @@ class Command(abc.ABC):
         self._agent_folder = ''
         self._agent_process = None
         self._agent_server = '127.0.0.1'
-
-        self._program_1c_arguments = []
-        self._program_1c = ''
-        self._version_1c = ''
-
-        if self._mode == Mode.DESIGNER:
-            self._set_designer()
-        elif self._mode == Mode.ENTERPRISE:
-            self._set_enterprise()
-        elif self._mode == Mode.CREATE:
-            self._set_create_base()
-
-        self._set_path_1c()
-
-    @property
-    def name(self):
-        return self.__class__.__name__
 
     @property
     def default_result(self):
@@ -105,13 +99,7 @@ class Command(abc.ABC):
             for bin_form in self._find_bin_forms(folder):
                 self._parse_module_from_bin(bin_form)
 
-    def debug(self, msg, *args):
-        self._logger.debug(msg, *args)
-
-    def error(self, msg, *args):
-        self._logger.error(msg, *args)
-
-    def start_agent(self, logger=None):
+    def start_agent(self):
         if self._connect_to_agent:
             return
 
@@ -125,8 +113,7 @@ class Command(abc.ABC):
         setattr(p_agent, 'connection', self.arguments.connection)
         setattr(p_agent, 'folder', self._agent_folder)
         setattr(p_agent, 'port', self._agent_port)
-        # todo нужно копирование logger handler при multiprocessing
-        agent = StartAgent(arguments=p_agent, logger=logger)
+        agent = StartAgent(arguments=p_agent, parent=self)
         return_code = agent.execute()
         if not runner1c.exit_code.success_result(return_code):
             raise Exception('Failed start agent')

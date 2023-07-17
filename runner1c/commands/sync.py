@@ -93,7 +93,7 @@ class Sync(runner1c.command.Command):
                     setattr(p_dump_epf, 'access', self.arguments.access)
                     setattr(p_dump_epf, 'login', self.arguments.login)
                     setattr(p_dump_epf, 'password', self.arguments.password)
-                    return_code = runner1c.commands.dump_epf.DumpEpf(arguments=p_dump_epf).execute()
+                    return_code = runner1c.commands.dump_epf.DumpEpf(arguments=p_dump_epf, parent=self).execute()
                     if not runner1c.exit_code.success_result(return_code):
                         error_in_loop = True
                         break
