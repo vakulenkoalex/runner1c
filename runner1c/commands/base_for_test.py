@@ -82,7 +82,8 @@ class BaseForTest(runner1c.command.Command):
         self.debug('stop parent multiprocessing')
 
         queue_listener.stop()
-        self.close_agent()
+        if getattr(self.arguments, 'need_close_agent', False):
+            self.close_agent()
 
         # todo нужен анализ результата запуска процессов
         return runner1c.exit_code.EXIT_CODE.done

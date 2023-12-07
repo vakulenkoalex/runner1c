@@ -20,13 +20,18 @@ class DumpExtensionsParser(runner1c.parser.Parser):
     def set_up(self):
         self.add_argument_to_parser()
         self._parser.add_argument('--folder', required=True, help='каталог, в который будет выгружены расширения')
+        self._parser.add_argument('--name', help='имя расширения, которые нужно выгрузить')
 
 
 class DumpExtensions(runner1c.command.Command):
     def __init__(self, **kwargs):
         kwargs['mode'] = runner1c.command.Mode.DESIGNER
         super().__init__(**kwargs)
-        self.add_argument('/DumpConfigToFiles "{temp_folder}" -AllExtensions')
+        self.add_argument('/DumpConfigToFiles "{temp_folder}"')
+        if getattr(self.arguments, 'name', False):
+            self.add_argument('-Extension "{name}"')
+        else:
+            self.add_argument('-AllExtensions')
 
     def execute(self):
         temp_folder = tempfile.mkdtemp()
