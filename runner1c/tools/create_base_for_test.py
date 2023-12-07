@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import re
@@ -8,6 +9,9 @@ import tkinter.messagebox as messagebox
 from configparser import ConfigParser, NoOptionError
 
 import runner1c
+import runner1c.commands.base_for_test as base_for_test
+import runner1c.commands.load_extension as load_extension
+import runner1c.exit_code as exit_code
 
 
 def _ask_file_dir(element, title, open_file):
@@ -58,9 +62,11 @@ FORM = tkinter.Tk()
 BASE = _place_ask_directory('Путь к базе', 0)
 PLATFORM = _place_ask_directory('Путь к платформе', 40)
 REPO = _place_ask_directory('Путь к исходникам', 80)
-CFE_NAME = _place_ask_directory('Путь к feature или epf', 120, True)
-THICK_CLIENT = place_checkbox('Толстый клиент', 90, 170)
-CREATE_EPF = place_checkbox('Создать epf', 210, 170)
+EPF_NAME = _place_ask_directory('Путь к feature или epf', 120, True)
+CFE_NAME = _place_ask_directory('Путь к расширению с тестами для YAxunit', 160)
+YAxunit = _place_ask_directory('Путь к расширению YAxunit', 200)
+THICK_CLIENT = place_checkbox('Толстый клиент', 90, 260)
+CREATE_EPF = place_checkbox('Создать epf', 210, 260)
 
 
 def _set_entry_value(element, text):
@@ -76,12 +82,14 @@ def _radiobutton_change(repo_name):
     _delete_entry_value(PLATFORM)
     _delete_entry_value(REPO)
     THICK_CLIENT.set(False)
+    _delete_entry_value(YAxunit)
 
     try:
         _set_entry_value(BASE, CONFIG.get(repo_name, 'base'))
         _set_entry_value(PLATFORM, CONFIG.get(repo_name, 'platform'))
         _set_entry_value(REPO, CONFIG.get(repo_name, 'repo'))
         THICK_CLIENT.set(CONFIG.get(repo_name, 'thick_client'))
+        _set_entry_value(YAxunit, CONFIG.get(repo_name, 'yaxunit'))
     except NoOptionError:
         pass
 
@@ -95,7 +103,7 @@ def _place_repo(position, key):
     rbutton.place(x=280, y=20 * position)
 
 
-def _save_parameters(repo_path, base_path, platform_path, thick_client):
+def _save_parameters(repo_path, base_path, platform_path, thick_client, yaxunit):
     repo_name = os.path.split(repo_path)[1]
 
     if not CONFIG.has_section(repo_name):
@@ -105,6 +113,7 @@ def _save_parameters(repo_path, base_path, platform_path, thick_client):
     CONFIG.set(repo_name, 'base', base_path)
     CONFIG.set(repo_name, 'platform', platform_path)
     CONFIG.set(repo_name, 'thick_client', str(thick_client))
+    CONFIG.set(repo_name, 'YAxunit', str(yaxunit))
 
     with open(INI_FILE, 'w') as file:
         CONFIG.write(file)
@@ -143,55 +152,97 @@ def _create_base_click():
     if not BASE.get():
         messagebox.showerror("Ошибка", 'Не указан путь к базе')
         return
-
     if not PLATFORM.get():
         messagebox.showerror("Ошибка", 'Не указан путь к платформе')
         return
-
     if not REPO.get():
         messagebox.showerror("Ошибка", 'Не указан путь к исходникам')
         return
-
-    if CFE_NAME.get():
-        extension_name = _get_extension_name_from_file(CFE_NAME.get())
+    if EPF_NAME.get():
+        extension_name = _get_extension_name_from_file(EPF_NAME.get())
         if len(extension_name) == 0:
             messagebox.showerror("Ошибка", 'В выбраных фичах/тестах нет расширений')
             return
 
     repo_path = REPO.get()
-
     if os.path.exists(BASE.get()):
         shutil.rmtree(BASE.get(), True)
     os.makedirs(BASE.get())
-
-    arguments = ['--debug', 'base_for_test', '--path', PLATFORM.get(), '--connection', 'File=' + BASE.get(),
-                 '--folder', repo_path]
-    if CREATE_EPF.get():
-        arguments.append('--create_epf')
-    if THICK_CLIENT.get():
-        arguments.append('--thick')
-    if _folder_for_cfe_exist(repo_path):
-        arguments.append('--create_cfe')
-
-    _save_parameters(repo_path, BASE.get(), PLATFORM.get(), THICK_CLIENT.get())
+    _save_parameters(repo_path, BASE.get(), PLATFORM.get(), THICK_CLIENT.get(), YAxunit.get())
     _save_parameters_for_acc(BASE.get(), repo_path, PLATFORM.get())
 
-    if runner1c.core.main(arguments) == 0:
-        destroy_form = True
-        if CFE_NAME.get():
-            arguments = ['--debug', 'load_extension', '--agent', '--silent', '--path', PLATFORM.get(), '--connection',
-                         'File=' + BASE.get(), '--folder', os.path.join(repo_path, 'spec', 'ext'), '--name',
-                         extension_name, '--update']
-            if runner1c.core.main(arguments) != 0:
-                destroy_form = False
+    p_test = argparse.Namespace()
+    setattr(p_test, 'need_close_agent', False)
+    setattr(p_test, 'debug', True)
+    setattr(p_test, 'path', PLATFORM.get())
+    setattr(p_test, 'connection', 'File=' + BASE.get())
+    setattr(p_test, 'folder', repo_path)
+    if CREATE_EPF.get():
+        setattr(p_test, 'create_epf', True)
+    if THICK_CLIENT.get():
+        setattr(p_test, 'thick', True)
+    if _folder_for_cfe_exist(repo_path):
+        setattr(p_test, 'create_cfe', True)
 
-        if destroy_form:
+    command = base_for_test.BaseForTest(arguments=p_test)
+    return_code = command.execute()
+    if exit_code.success_result(return_code):
+
+        success_result = True
+
+        if EPF_NAME.get():
+            p_epf = runner1c.command.EmptyParameters(p_test)
+            setattr(p_epf, 'connection', 'File=' + BASE.get())
+            setattr(p_epf, 'folder', os.path.join(repo_path, 'spec', 'ext'))
+            setattr(p_epf, 'name', extension_name)
+            setattr(p_epf, 'update', True)
+            setattr(p_epf, 'agent', True)
+            command_epf = load_extension.LoadExtension(arguments=p_epf, agent_port=command.get_agent_port())
+            command_epf.connect_to_agent()
+            return_code = command_epf.execute()
+            if exit_code.success_result(return_code):
+                command_epf.disconnect_from_agent()
+            else:
+                success_result = False
+        if CFE_NAME.get():
+            head, tail = os.path.split(CFE_NAME.get())
+            p_cfe = runner1c.command.EmptyParameters(p_test)
+            setattr(p_cfe, 'connection', 'File=' + BASE.get())
+            setattr(p_cfe, 'folder', head)
+            setattr(p_cfe, 'name', tail)
+            setattr(p_cfe, 'update', True)
+            setattr(p_cfe, 'agent', True)
+            command_cfe = load_extension.LoadExtension(arguments=p_cfe, agent_port=command.get_agent_port())
+            command_cfe.connect_to_agent()
+            return_code = command_cfe.execute()
+            if exit_code.success_result(return_code):
+                command_cfe.disconnect_from_agent()
+                if YAxunit.get():
+                    head, tail = os.path.split(YAxunit.get())
+                    p_yaxunit = runner1c.command.EmptyParameters(p_test)
+                    setattr(p_yaxunit, 'connection', 'File=' + BASE.get())
+                    setattr(p_yaxunit, 'folder', head)
+                    setattr(p_yaxunit, 'name', tail)
+                    setattr(p_yaxunit, 'update', True)
+                    setattr(p_yaxunit, 'agent', True)
+                    command_yaxunit = load_extension.LoadExtension(arguments=p_yaxunit, agent_port=command.get_agent_port())
+                    command_yaxunit.connect_to_agent()
+                    return_code = command_yaxunit.execute()
+                    if exit_code.success_result(return_code):
+                        command_yaxunit.disconnect_from_agent()
+                    else:
+                        success_result = False
+            else:
+                success_result = False
+
+        if success_result:
+            command.close_agent()
             FORM.destroy()
 
 
 def _create_form():
     FORM.title('Создание базы для тестов ' + runner1c.__version__)
-    FORM.geometry('430x200')
+    FORM.geometry('430x300')
 
     i = 0
     for key in CONFIG.sections():
@@ -201,7 +252,7 @@ def _create_form():
     create_button = tkinter.Button(FORM,
                                    text='Создать базу',
                                    command=lambda: _create_base_click())
-    create_button.place(x=5, y=170)
+    create_button.place(x=5, y=260)
 
     FORM.mainloop()
 
