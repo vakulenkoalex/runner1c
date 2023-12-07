@@ -181,6 +181,8 @@ def _create_base_click():
         setattr(p_test, 'create_epf', True)
     if THICK_CLIENT.get():
         setattr(p_test, 'thick', True)
+    else:
+        setattr(p_test, 'thick', False)
     if _folder_for_cfe_exist(repo_path):
         setattr(p_test, 'create_cfe', True)
 
