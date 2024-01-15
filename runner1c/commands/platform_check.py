@@ -38,14 +38,11 @@ class PlatformCheckConfig(runner1c.command.Command):
         return_code = self.run()
 
         _delete_plug_function(self.arguments.log)
-
-        if getattr(self.arguments, 'skip_modality'):
-            _delete_modality_error(self.arguments.skip_modality, self.arguments.log)
-
         if getattr(self.arguments, 'skip_object'):
             _delete_skip_object(self.arguments.skip_object, self.arguments.log)
-
         _delete_skip_error(self.arguments, self.arguments.log)
+        if getattr(self.arguments, 'skip_modality'):
+            _delete_modality_error(self.arguments.skip_modality, self.arguments.log)
 
         return return_code
 
@@ -108,19 +105,23 @@ def _delete_skip_object(skip_object, log):
     if not os.path.exists(skip_object):
         return
 
-    skip_lines = _read_file_to_list(skip_object)
+    skip_objects = _read_file_to_list(skip_object)
 
     new_log_file = tempfile.mktemp('.txt')
     new_log_file_stream = open(new_log_file, mode='w', encoding='utf-8')
 
+    add_string = True
     log_file = open(log, mode='r', encoding='utf-8')
     for line in log_file:
-        if line[0] != '\t': # если строка начинается с табуляции, значит она относиться к предыдущей строке
-            add_string = True
-        for error_line in skip_lines:
-            if error_line.strip() in line:
-                add_string = False
-                break
+        if line[0] != '\t':  # если строка начинается с табуляции, значит она относиться к предыдущей строке
+            break_exit = False
+            for ignore_object in skip_objects:
+                if ignore_object.strip() in line:
+                    add_string = False
+                    break_exit = True
+                    break
+            if not break_exit:
+                add_string = True
         if add_string:
             new_log_file_stream.write(line)
 
